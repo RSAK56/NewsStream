@@ -84,10 +84,34 @@ docker build -t newsstream .
 2. Run the container:
 
 ```bash
-docker run -p 3000:80 newsstream
+docker run -p 5173:5173 newsstream
 ```
 
-The application will be available at `http://localhost:3000`
+The application will be available at `http://localhost:5173`
+
+#### Using Docker Compose
+
+1. Start the application:
+
+```bash
+docker-compose up
+```
+
+2. For running in detached mode:
+
+```bash
+docker-compose up -d
+```
+
+3. To stop the containers:
+
+```bash
+docker-compose down
+```
+
+The application will be available at `http://localhost:5173`
+
+Note: When using Docker, make sure your environment variables are properly configured. You can create a `.env` file that Docker will use during the build process. However, remember that the `.env` file is ignored in Docker builds for security reasons - you'll need to pass environment variables through Docker Compose or at runtime.
 
 ## Project Structure
 
