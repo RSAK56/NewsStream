@@ -1,4 +1,4 @@
-import { NewsSource } from "./types";
+import { NewsSource, Category } from "./types";
 
 export interface INewsStore {
   isDarkMode: boolean;
@@ -6,11 +6,42 @@ export interface INewsStore {
   filters: {
     search: "";
     sources: ["newsapi", "guardian", "nytimes"];
-    categories: ["general"];
+    categories: Category[];
     dateFrom: undefined;
     dateTo: undefined;
   };
+  setSearch: (search: string) => void;
   toggleSource: (source: NewsSource) => void;
+  toggleCategory: (category: Category) => void;
+}
+
+export interface INewsAPIArticle {
+  title: string;
+  description: string;
+  url: string;
+  urlToImage: string;
+  publishedAt: string;
+  category?: string;
+}
+
+export interface IGuardianArticle {
+  webTitle: string;
+  webUrl: string;
+  webPublicationDate: string;
+  sectionId: string;
+  fields?: {
+    bodyText: string;
+    thumbnail: string;
+  };
+}
+
+export interface INYTimesArticle {
+  title: string;
+  abstract: string;
+  url: string;
+  published_date: string;
+  section: string;
+  multimedia?: Array<{ url: string }>;
 }
 
 export interface INewsArticle {
@@ -19,6 +50,7 @@ export interface INewsArticle {
   url: string;
   urlToImage: string;
   publishedAt: string;
+  category?: string;
   source: {
     name: string;
   };

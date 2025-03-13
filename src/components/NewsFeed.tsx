@@ -7,11 +7,73 @@ import { INewsArticle } from "../constants/interfaces";
 const NewsFeed = () => {
   const isDarkMode = useNewsStore((state) => state.isDarkMode);
   const selectedSources = useNewsStore((state) => state.filters.sources);
+  const searchTerm = useNewsStore((state) => state.filters.search);
+  const selectedCategories = useNewsStore((state) => state.filters.categories);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: [...queryKeys.news, selectedSources],
-    queryFn: () => fetchNews(selectedSources),
+    queryKey: [...queryKeys.news, selectedSources, selectedCategories],
+    queryFn: () => fetchNews(selectedSources, selectedCategories),
   });
+
+  const filteredArticles =
+    data?.articles?.filter((article) => {
+      const searchLower = searchTerm?.toLowerCase() || "";
+      const sourceLower = article?.source?.name?.toLowerCase() || "";
+
+      // Search filter
+      if (
+        searchLower === "newsapi" ||
+        searchLower === "guardian" ||
+        searchLower === "times"
+      ) {
+        return sourceLower.includes(searchLower);
+      }
+
+      // Category filter
+      const articleCategory = article?.category?.toLowerCase() || "";
+      const matchesCategory =
+        selectedCategories.length === 0 ||
+        selectedCategories.some((category) =>
+          articleCategory.includes(category.toLowerCase()),
+        );
+
+      // Text search filter
+      const matchesSearch =
+        article?.title?.toLowerCase()?.includes(searchLower) ||
+        article?.description?.toLowerCase()?.includes(searchLower);
+
+      return matchesCategory && matchesSearch;
+    }) || [];
+
+  const NoDataMessage = () => (
+    <div className="text-center py-12">
+      <svg
+        className={`w-24 h-24 mx-auto mb-4 ${
+          isDarkMode ? "text-gray-600" : "text-gray-400"
+        }`}
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={1.5}
+          d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-2-2h-2"
+        />
+      </svg>
+      <h3
+        className={`text-xl font-medium mb-2 ${
+          isDarkMode ? "text-gray-300" : "text-gray-700"
+        }`}
+      >
+        No News Articles Found
+      </h3>
+      <p className={`${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+        There are no articles available for the selected sources and categories.
+      </p>
+    </div>
+  );
 
   if (error) {
     return (
@@ -50,8 +112,8 @@ const NewsFeed = () => {
       >
         {isLoading ? (
           <p>Loading news articles...</p>
-        ) : (
-          data?.articles?.map((article: INewsArticle, index: number) => (
+        ) : filteredArticles?.length ? (
+          filteredArticles.map((article: INewsArticle, index: number) => (
             <article
               key={index}
               className="border-b last:border-b-0 pb-4 last:pb-0"
@@ -87,6 +149,8 @@ const NewsFeed = () => {
               </a>
             </article>
           ))
+        ) : (
+          <NoDataMessage />
         )}
       </div>
     </div>
