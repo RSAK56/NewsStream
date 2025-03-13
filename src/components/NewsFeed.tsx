@@ -1,12 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNewsStore } from "../store/useNewsStore";
 import { fetchNews, type NewsArticle } from "../services/newsApi";
+import { queryKeys } from "../constants/keys";
 
 const NewsFeed = () => {
   const isDarkMode = useNewsStore((state) => state.isDarkMode);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["news"],
+    queryKey: queryKeys.news,
     queryFn: fetchNews,
   });
 
