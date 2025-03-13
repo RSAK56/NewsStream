@@ -15,34 +15,35 @@ const NewsFeed = () => {
     queryFn: () => fetchNews(selectedSources, selectedCategories),
   });
 
-  const filteredArticles = data?.articles?.filter((article) => {
-    const searchLower = searchTerm?.toLowerCase() || "";
-    const sourceLower = article?.source?.name?.toLowerCase() || "";
+  const filteredArticles =
+    data?.articles?.filter((article) => {
+      const searchLower = searchTerm?.toLowerCase() || "";
+      const sourceLower = article?.source?.name?.toLowerCase() || "";
 
-    // Search filter
-    if (
-      searchLower === "newsapi" ||
-      searchLower === "guardian" ||
-      searchLower === "times"
-    ) {
-      return sourceLower.includes(searchLower);
-    }
+      // Search filter
+      if (
+        searchLower === "newsapi" ||
+        searchLower === "guardian" ||
+        searchLower === "times"
+      ) {
+        return sourceLower.includes(searchLower);
+      }
 
-    // Category filter
-    const matchesCategory =
-      selectedCategories.length === 0 ||
-      selectedCategories.some(
-        (category) =>
-          article?.category?.toLowerCase() === category.toLowerCase(),
-      );
+      // Category filter
+      const articleCategory = article?.category?.toLowerCase() || "";
+      const matchesCategory =
+        selectedCategories.length === 0 ||
+        selectedCategories.some((category) =>
+          articleCategory.includes(category.toLowerCase()),
+        );
 
-    // Text search filter
-    const matchesSearch =
-      article?.title?.toLowerCase()?.includes(searchLower) ||
-      article?.description?.toLowerCase()?.includes(searchLower);
+      // Text search filter
+      const matchesSearch =
+        article?.title?.toLowerCase()?.includes(searchLower) ||
+        article?.description?.toLowerCase()?.includes(searchLower);
 
-    return matchesCategory && matchesSearch;
-  });
+      return matchesCategory && matchesSearch;
+    }) || [];
 
   const NoDataMessage = () => (
     <div className="text-center py-12">

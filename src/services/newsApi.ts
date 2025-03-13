@@ -93,17 +93,37 @@ const fetchGuardian = async (category: string): Promise<INewsResponse> => {
 
 const fetchNYTimes = async (category: string): Promise<INewsResponse> => {
   const API_KEY = import.meta.env.VITE_NYTIMES_API_KEY;
+  // First try mapped category, fallback to 'home' if not supported
   const nytCategory = CATEGORY_MAPPINGS.nytimes[category as Category] || "home";
 
-  const response = await fetch(
-    `https://api.nytimes.com/svc/topstories/v2/${nytCategory}.json?api-key=${API_KEY}`,
-  );
+  try {
+    const response = await fetch(
+      `https://api.nytimes.com/svc/topstories/v2/${nytCategory}.json?api-key=${API_KEY}`,
+    );
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch news from NY Times");
+    if (!response.ok) {
+      // If category request fails, fallback to home
+      const fallbackResponse = await fetch(
+        `https://api.nytimes.com/svc/topstories/v2/home.json?api-key=${API_KEY}`,
+      );
+      if (!fallbackResponse.ok) {
+        throw new Error("Failed to fetch news from NY Times");
+      }
+      return processFetchedData(await fallbackResponse.json(), category);
+    }
+
+    return processFetchedData(await response.json(), category);
+  } catch (error: unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    throw new Error(`Failed to fetch news from NY Times: ${errorMessage}`);
   }
+};
 
-  const data = await response.json();
+const processFetchedData = (
+  data: any,
+  requestedCategory: string,
+): INewsResponse => {
   return {
     status: "ok",
     totalResults: data.results?.length || 0,
@@ -113,7 +133,7 @@ const fetchNYTimes = async (category: string): Promise<INewsResponse> => {
       url: item.url,
       urlToImage: item.multimedia?.[0]?.url,
       publishedAt: item.published_date,
-      category: item.section || category,
+      category: item.section || requestedCategory,
       source: { name: "The New York Times" },
     })),
   };
@@ -124,20 +144,21 @@ export const fetchNews = async (
   categories: string[],
 ): Promise<INewsResponse> => {
   try {
-    const promises = sources.map((source) => {
-      const categoryParam = categories.length > 0 ? categories[0] : "general"; // Use first category only
-
-      switch (source) {
-        case "newsapi":
-          return fetchNewsAPI(categoryParam);
-        case "guardian":
-          return fetchGuardian(categoryParam);
-        case "nytimes":
-          return fetchNYTimes(categoryParam);
-        default:
-          return Promise.reject(new Error(`Unknown source: ${source}`));
-      }
-    });
+    const promises = sources.flatMap((source) =>
+      // If no categories selected, fetch 'general'
+      (categories.length > 0 ? categories : ["general"]).map((category) => {
+        switch (source) {
+          case "newsapi":
+            return fetchNewsAPI(category);
+          case "guardian":
+            return fetchGuardian(category);
+          case "nytimes":
+            return fetchNYTimes(category);
+          default:
+            return Promise.reject(new Error(`Unknown source: ${source}`));
+        }
+      }),
+    );
 
     const results = await Promise.allSettled(promises);
     const successfulResults = results
