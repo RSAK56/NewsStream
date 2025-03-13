@@ -1,8 +1,10 @@
 import { useNewsStore } from "../store/useNewsStore";
-import { sources } from "../constants";
+import { categories, sources } from "../constants";
+import { Category, NewsSource } from "../constants/types";
 
 const Filters = () => {
-  const { filters, setSearch, toggleSource, isDarkMode } = useNewsStore();
+  const { filters, setSearch, toggleSource, toggleCategory, isDarkMode } =
+    useNewsStore();
 
   return (
     <div
@@ -10,6 +12,7 @@ const Filters = () => {
         isDarkMode ? "bg-gray-800" : "bg-white"
       } rounded-lg shadow p-6 space-y-6`}
     >
+      {/* Search */}
       <div>
         <label
           htmlFor="search"
@@ -33,6 +36,7 @@ const Filters = () => {
         />
       </div>
 
+      {/* Sources */}
       <div>
         <h3
           className={`text-sm font-medium mb-2 ${
@@ -42,11 +46,11 @@ const Filters = () => {
           Sources
         </h3>
         <div className="space-y-2">
-          {sources.map((source) => (
+          {sources.map((source: NewsSource) => (
             <label key={source} className="flex items-center">
               <input
                 type="checkbox"
-                checked={filters.sources.includes(source)}
+                checked={filters?.sources?.includes(source)}
                 onChange={() => toggleSource(source)}
                 className={`rounded text-blue-600 focus:ring-blue-500 ${
                   isDarkMode ? "bg-gray-700 border-gray-600" : "border-gray-300"
@@ -58,6 +62,38 @@ const Filters = () => {
                 }`}
               >
                 {source}
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Categories */}
+      <div>
+        <h3
+          className={`text-sm font-medium mb-2 ${
+            isDarkMode ? "text-gray-200" : "text-gray-700"
+          }`}
+        >
+          Categories
+        </h3>
+        <div className="space-y-2">
+          {categories?.map((category: Category) => (
+            <label key={category} className="flex items-center">
+              <input
+                type="checkbox"
+                checked={filters?.categories?.includes(category)}
+                onChange={() => toggleCategory(category)}
+                className={`rounded text-blue-600 focus:ring-blue-500 ${
+                  isDarkMode ? "bg-gray-700 border-gray-600" : "border-gray-300"
+                }`}
+              />
+              <span
+                className={`ml-2 text-sm capitalize ${
+                  isDarkMode ? "text-gray-300" : "text-gray-600"
+                }`}
+              >
+                {category}
               </span>
             </label>
           ))}

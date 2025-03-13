@@ -1,22 +1,43 @@
-import { INewsResponse } from "../constants/interfaces";
+import {
+  IGuardianArticle,
+  INewsAPIArticle,
+  INewsResponse,
+  INYTimesArticle,
+} from "../constants/interfaces";
 
-const fetchNewsAPI = async (): Promise<INewsResponse> => {
+const fetchNewsAPI = async (category: string): Promise<INewsResponse> => {
   const API_KEY = import.meta.env.VITE_NEWS_API_KEY;
   const response = await fetch(
-    `https://newsapi.org/v2/top-headlines?country=us&apiKey=${API_KEY}`,
+    `https://newsapi.org/v2/top-headlines?country=us&apiKey=${API_KEY}&category=${category}`,
   );
 
   if (!response.ok) {
     throw new Error("Failed to fetch news from NewsAPI");
   }
 
-  return response.json();
+  const data = await response.json();
+
+  // Transform NewsAPI response to match NewsResponse interface
+  return {
+    status: "ok",
+    totalResults: data.articles.length,
+    articles: data.articles.map((item: INewsAPIArticle) => ({
+      ...item,
+      category: item.category || category,
+      title: item.title,
+      description: item.description,
+      url: item.url,
+      urlToImage: item.urlToImage,
+      publishedAt: item.publishedAt,
+      source: { name: "NewsAPI" },
+    })),
+  };
 };
 
-const fetchGuardian = async (): Promise<INewsResponse> => {
+const fetchGuardian = async (category: string): Promise<INewsResponse> => {
   const API_KEY = import.meta.env.VITE_GUARDIAN_API_KEY;
   const response = await fetch(
-    `https://content.guardianapis.com/search?api-key=${API_KEY}&show-fields=thumbnail,bodyText`,
+    `https://content.guardianapis.com/search?api-key=${API_KEY}&show-fields=thumbnail,bodyText&q=${category}`,
   );
 
   if (!response.ok) {
@@ -29,7 +50,9 @@ const fetchGuardian = async (): Promise<INewsResponse> => {
   return {
     status: "ok",
     totalResults: data.response.total,
-    articles: data.response.results.map((item: any) => ({
+    articles: data.response.results.map((item: IGuardianArticle) => ({
+      ...item,
+      category: item.sectionId || category,
       title: item.webTitle,
       description: item.fields?.bodyText?.substring(0, 200) + "...",
       url: item.webUrl,
@@ -40,10 +63,10 @@ const fetchGuardian = async (): Promise<INewsResponse> => {
   };
 };
 
-const fetchNYTimes = async (): Promise<INewsResponse> => {
+const fetchNYTimes = async (category: string): Promise<INewsResponse> => {
   const API_KEY = import.meta.env.VITE_NYTIMES_API_KEY;
   const response = await fetch(
-    `https://api.nytimes.com/svc/topstories/v2/home.json?api-key=${API_KEY}`,
+    `https://api.nytimes.com/svc/topstories/v2/${category}.json?api-key=${API_KEY}`,
   );
 
   if (!response.ok) {
@@ -56,7 +79,9 @@ const fetchNYTimes = async (): Promise<INewsResponse> => {
   return {
     status: "ok",
     totalResults: data.results.length,
-    articles: data.results.map((item: any) => ({
+    articles: data.results.map((item: INYTimesArticle) => ({
+      ...item,
+      category: item.section || category,
       title: item.title,
       description: item.abstract,
       url: item.url,
@@ -67,16 +92,22 @@ const fetchNYTimes = async (): Promise<INewsResponse> => {
   };
 };
 
-export const fetchNews = async (sources: string[]): Promise<INewsResponse> => {
+export const fetchNews = async (
+  sources: string[],
+  categories: string[],
+): Promise<INewsResponse> => {
   try {
     const promises = sources.map((source) => {
+      const categoryParam =
+        categories.length > 0 ? categories.join(",") : "general";
+
       switch (source) {
         case "newsapi":
-          return fetchNewsAPI();
+          return fetchNewsAPI(categoryParam);
         case "guardian":
-          return fetchGuardian();
+          return fetchGuardian(categoryParam);
         case "nytimes":
-          return fetchNYTimes();
+          return fetchNYTimes(categoryParam);
         default:
           return Promise.reject(new Error(`Unknown source: ${source}`));
       }

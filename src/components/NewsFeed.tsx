@@ -8,17 +8,18 @@ const NewsFeed = () => {
   const isDarkMode = useNewsStore((state) => state.isDarkMode);
   const selectedSources = useNewsStore((state) => state.filters.sources);
   const searchTerm = useNewsStore((state) => state.filters.search);
+  const selectedCategories = useNewsStore((state) => state.filters.categories);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: [...queryKeys.news, selectedSources],
-    queryFn: () => fetchNews(selectedSources),
+    queryKey: [...queryKeys.news, selectedSources, selectedCategories],
+    queryFn: () => fetchNews(selectedSources, selectedCategories),
   });
 
   const filteredArticles = data?.articles?.filter((article) => {
     const searchLower = searchTerm?.toLowerCase() || "";
     const sourceLower = article?.source?.name?.toLowerCase() || "";
 
-    // Check if searching for a source name
+    // Search filter
     if (
       searchLower === "newsapi" ||
       searchLower === "guardian" ||
@@ -27,11 +28,20 @@ const NewsFeed = () => {
       return sourceLower.includes(searchLower);
     }
 
-    // Otherwise search in title and description
-    return (
+    // Category filter
+    const matchesCategory =
+      selectedCategories.length === 0 ||
+      selectedCategories.some(
+        (category) =>
+          article?.category?.toLowerCase() === category.toLowerCase(),
+      );
+
+    // Text search filter
+    const matchesSearch =
       article?.title?.toLowerCase()?.includes(searchLower) ||
-      article?.description?.toLowerCase()?.includes(searchLower)
-    );
+      article?.description?.toLowerCase()?.includes(searchLower);
+
+    return matchesCategory && matchesSearch;
   });
 
   if (error) {
