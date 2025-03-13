@@ -14,7 +14,7 @@ const NewsFeed = () => {
     return (
       <div className="space-y-6">
         <h2
-          className={`text-xl font-semibold ${
+          className={`text-4xl font-semibold ${
             isDarkMode ? "text-white" : "text-gray-900"
           }`}
         >
