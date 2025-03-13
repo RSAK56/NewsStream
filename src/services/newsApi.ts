@@ -1,21 +1,6 @@
-interface NewsArticle {
-  title: string;
-  description: string;
-  url: string;
-  urlToImage: string;
-  publishedAt: string;
-  source: {
-    name: string;
-  };
-}
+import { INewsResponse } from "../constants/interfaces";
 
-interface NewsResponse {
-  articles: NewsArticle[];
-  status: string;
-  totalResults: number;
-}
-
-const fetchNewsAPI = async (): Promise<NewsResponse> => {
+const fetchNewsAPI = async (): Promise<INewsResponse> => {
   const API_KEY = import.meta.env.VITE_NEWS_API_KEY;
   const response = await fetch(
     `https://newsapi.org/v2/top-headlines?country=us&apiKey=${API_KEY}`,
@@ -28,7 +13,7 @@ const fetchNewsAPI = async (): Promise<NewsResponse> => {
   return response.json();
 };
 
-const fetchGuardian = async (): Promise<NewsResponse> => {
+const fetchGuardian = async (): Promise<INewsResponse> => {
   const API_KEY = import.meta.env.VITE_GUARDIAN_API_KEY;
   const response = await fetch(
     `https://content.guardianapis.com/search?api-key=${API_KEY}&show-fields=thumbnail,bodyText`,
@@ -55,7 +40,7 @@ const fetchGuardian = async (): Promise<NewsResponse> => {
   };
 };
 
-const fetchNYTimes = async (): Promise<NewsResponse> => {
+const fetchNYTimes = async (): Promise<INewsResponse> => {
   const API_KEY = import.meta.env.VITE_NYTIMES_API_KEY;
   const response = await fetch(
     `https://api.nytimes.com/svc/topstories/v2/home.json?api-key=${API_KEY}`,
@@ -82,7 +67,7 @@ const fetchNYTimes = async (): Promise<NewsResponse> => {
   };
 };
 
-export const fetchNews = async (sources: string[]): Promise<NewsResponse> => {
+export const fetchNews = async (sources: string[]): Promise<INewsResponse> => {
   try {
     const promises = sources.map((source) => {
       switch (source) {
@@ -114,5 +99,3 @@ export const fetchNews = async (sources: string[]): Promise<NewsResponse> => {
     throw new Error(`Failed to fetch news: ${errorMessage}`);
   }
 };
-
-export type { NewsArticle, NewsResponse };

@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNewsStore } from "../store/useNewsStore";
-import { fetchNews, type NewsArticle } from "../services/newsApi";
+import { fetchNews } from "../services/newsApi";
 import { queryKeys } from "../constants/keys";
+import { INewsArticle } from "../constants/interfaces";
 
 const NewsFeed = () => {
   const isDarkMode = useNewsStore((state) => state.isDarkMode);
@@ -50,21 +51,21 @@ const NewsFeed = () => {
         {isLoading ? (
           <p>Loading news articles...</p>
         ) : (
-          data?.articles.map((article: NewsArticle, index: number) => (
+          data?.articles?.map((article: INewsArticle, index: number) => (
             <article
               key={index}
               className="border-b last:border-b-0 pb-4 last:pb-0"
             >
               <a
-                href={article.url}
+                href={article?.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block hover:opacity-80"
               >
-                {article.urlToImage && (
+                {article?.urlToImage && (
                   <img
-                    src={article.urlToImage}
-                    alt={article.title}
+                    src={article?.urlToImage}
+                    alt={article?.title}
                     className="w-full h-48 object-cover rounded-lg mb-3"
                   />
                 )}
@@ -73,14 +74,14 @@ const NewsFeed = () => {
                     isDarkMode ? "text-white" : "text-gray-900"
                   }`}
                 >
-                  {article.title}
+                  {article?.title}
                 </h3>
-                <p className="text-sm">{article.description}</p>
+                <p className="text-sm">{article?.description}</p>
                 <div className="mt-2 text-xs text-gray-500">
-                  <span>{article.source.name}</span>
+                  <span>{article?.source.name}</span>
                   <span className="mx-2">•</span>
                   <span>
-                    {new Date(article.publishedAt).toLocaleDateString()}
+                    {new Date(article?.publishedAt).toLocaleDateString()}
                   </span>
                 </div>
               </a>

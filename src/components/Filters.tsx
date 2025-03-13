@@ -1,4 +1,3 @@
-import React from "react";
 import { useNewsStore } from "../store/useNewsStore";
 import { sources } from "../constants";
 
