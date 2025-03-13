@@ -14,14 +14,25 @@ const NewsFeed = () => {
     queryFn: () => fetchNews(selectedSources),
   });
 
-  const filteredArticles = data?.articles?.filter(
-    (article) =>
-      article?.title?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
-      article?.description
-        ?.toLowerCase()
-        ?.includes(searchTerm?.toLowerCase()) ||
-      article?.source?.name?.toLowerCase()?.includes(searchTerm?.toLowerCase()),
-  );
+  const filteredArticles = data?.articles?.filter((article) => {
+    const searchLower = searchTerm?.toLowerCase() || "";
+    const sourceLower = article?.source?.name?.toLowerCase() || "";
+
+    // Check if searching for a source name
+    if (
+      searchLower === "newsapi" ||
+      searchLower === "guardian" ||
+      searchLower === "times"
+    ) {
+      return sourceLower.includes(searchLower);
+    }
+
+    // Otherwise search in title and description
+    return (
+      article?.title?.toLowerCase()?.includes(searchLower) ||
+      article?.description?.toLowerCase()?.includes(searchLower)
+    );
+  });
 
   if (error) {
     return (
