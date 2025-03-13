@@ -11,15 +11,22 @@ export const useNewsStore = create<INewsStore>()((set) => ({
     dateFrom: undefined,
     dateTo: undefined,
   },
+  setSearch: (search) =>
+    set(
+      (state) =>
+        ({
+          filters: { ...state?.filters, search },
+        } as INewsStore),
+    ),
   toggleSource: (source) =>
     set(
       (state) =>
         ({
           filters: {
-            ...state.filters,
-            sources: state.filters.sources.includes(source)
-              ? state.filters.sources.filter((s) => s !== source)
-              : [...state.filters.sources, source],
+            ...state?.filters,
+            sources: state?.filters?.sources?.includes(source)
+              ? state?.filters?.sources?.filter((s) => s !== source)
+              : [...state?.filters?.sources, source],
           },
         } as INewsStore),
     ),

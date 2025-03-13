@@ -2,7 +2,7 @@ import { useNewsStore } from "../store/useNewsStore";
 import { sources } from "../constants";
 
 const Filters = () => {
-  const { filters, toggleSource, isDarkMode } = useNewsStore();
+  const { filters, setSearch, toggleSource, isDarkMode } = useNewsStore();
 
   return (
     <div
@@ -10,6 +10,29 @@ const Filters = () => {
         isDarkMode ? "bg-gray-800" : "bg-white"
       } rounded-lg shadow p-6 space-y-6`}
     >
+      <div>
+        <label
+          htmlFor="search"
+          className={`block text-sm font-medium ${
+            isDarkMode ? "text-gray-200" : "text-gray-700"
+          }`}
+        >
+          Search
+        </label>
+        <input
+          type="text"
+          id="search"
+          value={filters?.search}
+          onChange={(e) => setSearch(e?.target?.value)}
+          className={`mt-1 block w-full rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 ${
+            isDarkMode
+              ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+              : "border-gray-300 text-gray-900 placeholder-gray-500"
+          }`}
+          placeholder="Search articles..."
+        />
+      </div>
+
       <div>
         <h3
           className={`text-sm font-medium mb-2 ${

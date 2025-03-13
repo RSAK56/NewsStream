@@ -7,11 +7,21 @@ import { INewsArticle } from "../constants/interfaces";
 const NewsFeed = () => {
   const isDarkMode = useNewsStore((state) => state.isDarkMode);
   const selectedSources = useNewsStore((state) => state.filters.sources);
+  const searchTerm = useNewsStore((state) => state.filters.search);
 
   const { data, isLoading, error } = useQuery({
     queryKey: [...queryKeys.news, selectedSources],
     queryFn: () => fetchNews(selectedSources),
   });
+
+  const filteredArticles = data?.articles?.filter(
+    (article) =>
+      article?.title?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
+      article?.description
+        ?.toLowerCase()
+        ?.includes(searchTerm?.toLowerCase()) ||
+      article?.source?.name?.toLowerCase()?.includes(searchTerm?.toLowerCase()),
+  );
 
   if (error) {
     return (
@@ -51,7 +61,7 @@ const NewsFeed = () => {
         {isLoading ? (
           <p>Loading news articles...</p>
         ) : (
-          data?.articles?.map((article: INewsArticle, index: number) => (
+          filteredArticles?.map((article: INewsArticle, index: number) => (
             <article
               key={index}
               className="border-b last:border-b-0 pb-4 last:pb-0"

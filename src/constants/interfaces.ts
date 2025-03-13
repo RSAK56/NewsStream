@@ -10,6 +10,7 @@ export interface INewsStore {
     dateFrom: undefined;
     dateTo: undefined;
   };
+  setSearch: (search: string) => void;
   toggleSource: (source: NewsSource) => void;
 }
 
