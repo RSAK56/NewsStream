@@ -5,10 +5,11 @@ import { queryKeys } from "../constants/keys";
 
 const NewsFeed = () => {
   const isDarkMode = useNewsStore((state) => state.isDarkMode);
+  const selectedSources = useNewsStore((state) => state.filters.sources);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: queryKeys.news,
-    queryFn: fetchNews,
+    queryKey: [...queryKeys.news, selectedSources],
+    queryFn: () => fetchNews(selectedSources),
   });
 
   if (error) {
