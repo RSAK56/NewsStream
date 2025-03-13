@@ -4,6 +4,31 @@ import {
   INewsResponse,
   INYTimesArticle,
 } from "../constants/interfaces";
+import { Category } from "../constants/types";
+
+const CATEGORY_MAPPINGS: {
+  guardian: Record<Category, string>;
+  nytimes: Record<Category, string>;
+} = {
+  guardian: {
+    business: "business",
+    technology: "technology",
+    general: "news",
+    health: "healthcare",
+    sports: "sport",
+    entertainment: "culture",
+    science: "science",
+  },
+  nytimes: {
+    business: "business",
+    technology: "technology",
+    sports: "sports",
+    health: "health",
+    general: "home",
+    science: "science",
+    entertainment: "arts",
+  },
+};
 
 const fetchNewsAPI = async (category: string): Promise<INewsResponse> => {
   const API_KEY = import.meta.env.VITE_NEWS_API_KEY;
@@ -36,8 +61,11 @@ const fetchNewsAPI = async (category: string): Promise<INewsResponse> => {
 
 const fetchGuardian = async (category: string): Promise<INewsResponse> => {
   const API_KEY = import.meta.env.VITE_GUARDIAN_API_KEY;
+  const guardianCategory =
+    CATEGORY_MAPPINGS.guardian[category as Category] || "news";
+
   const response = await fetch(
-    `https://content.guardianapis.com/search?api-key=${API_KEY}&show-fields=thumbnail,bodyText&q=${category}`,
+    `https://content.guardianapis.com/search?api-key=${API_KEY}&show-fields=thumbnail,bodyText&section=${guardianCategory}`,
   );
 
   if (!response.ok) {
@@ -65,8 +93,10 @@ const fetchGuardian = async (category: string): Promise<INewsResponse> => {
 
 const fetchNYTimes = async (category: string): Promise<INewsResponse> => {
   const API_KEY = import.meta.env.VITE_NYTIMES_API_KEY;
+  const nytCategory = CATEGORY_MAPPINGS.nytimes[category as Category] || "home";
+
   const response = await fetch(
-    `https://api.nytimes.com/svc/topstories/v2/${category}.json?api-key=${API_KEY}`,
+    `https://api.nytimes.com/svc/topstories/v2/${nytCategory}.json?api-key=${API_KEY}`,
   );
 
   if (!response.ok) {
@@ -74,19 +104,16 @@ const fetchNYTimes = async (category: string): Promise<INewsResponse> => {
   }
 
   const data = await response.json();
-
-  // Transform NYTimes response to match NewsResponse interface
   return {
     status: "ok",
-    totalResults: data.results.length,
-    articles: data.results.map((item: INYTimesArticle) => ({
-      ...item,
-      category: item.section || category,
+    totalResults: data.results?.length || 0,
+    articles: (data.results || []).map((item: INYTimesArticle) => ({
       title: item.title,
       description: item.abstract,
       url: item.url,
       urlToImage: item.multimedia?.[0]?.url,
       publishedAt: item.published_date,
+      category: item.section || category,
       source: { name: "The New York Times" },
     })),
   };
@@ -98,8 +125,7 @@ export const fetchNews = async (
 ): Promise<INewsResponse> => {
   try {
     const promises = sources.map((source) => {
-      const categoryParam =
-        categories.length > 0 ? categories.join(",") : "general";
+      const categoryParam = categories.length > 0 ? categories[0] : "general"; // Use first category only
 
       switch (source) {
         case "newsapi":
@@ -113,16 +139,21 @@ export const fetchNews = async (
       }
     });
 
-    const results = await Promise.all(promises);
+    const results = await Promise.allSettled(promises);
+    const successfulResults = results
+      .filter(
+        (result): result is PromiseFulfilledResult<INewsResponse> =>
+          result.status === "fulfilled",
+      )
+      .map((result) => result.value);
 
-    // Combine and deduplicate articles from all sources
     return {
       status: "ok",
-      totalResults: results.reduce(
+      totalResults: successfulResults.reduce(
         (sum, result) => sum + result.totalResults,
         0,
       ),
-      articles: results.flatMap((result) => result.articles),
+      articles: successfulResults.flatMap((result) => result.articles),
     };
   } catch (error: unknown) {
     const errorMessage =
