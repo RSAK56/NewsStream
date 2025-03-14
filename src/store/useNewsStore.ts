@@ -1,8 +1,9 @@
 import { create } from "zustand";
-import { INewsStore } from "../constants/interfaces";
+import { INewsStore, INewsArticle, Article } from "../constants/interfaces";
 import { Category } from "../constants/types";
+import { useUserStore } from "./useUserStore";
 
-export const useNewsStore = create<INewsStore>()((set) => ({
+export const useNewsStore = create<INewsStore>()((set, get) => ({
   isDarkMode: true,
   toggleDarkMode: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
   filters: {
@@ -50,4 +51,32 @@ export const useNewsStore = create<INewsStore>()((set) => ({
           filters: { ...state.filters, dateFrom: from, dateTo: to },
         } as INewsStore),
     ),
+  saveArticle: async (article: INewsArticle) => {
+    const userStore = useUserStore.getState();
+    if (!userStore.user) return;
+
+    const articleWithId: Article = {
+      ...article,
+      id: crypto.randomUUID(),
+    };
+
+    const updatedArticles = [
+      ...userStore.user.preferences.savedArticles,
+      articleWithId,
+    ];
+    await userStore.updatePreferences({
+      savedArticles: updatedArticles,
+    });
+  },
+  removeSavedArticle: async (articleId: string) => {
+    const userStore = useUserStore.getState();
+    if (!userStore.user) return;
+
+    const updatedArticles = userStore.user.preferences.savedArticles.filter(
+      (article) => article.id !== articleId,
+    );
+    await userStore.updatePreferences({
+      savedArticles: updatedArticles,
+    });
+  },
 }));
