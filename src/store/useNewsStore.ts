@@ -43,4 +43,11 @@ export const useNewsStore = create<INewsStore>()((set) => ({
           },
         } as INewsStore),
     ),
+  setDateRange: (from?: string, to?: string) =>
+    set(
+      (state) =>
+        ({
+          filters: { ...state.filters, dateFrom: from, dateTo: to },
+        } as INewsStore),
+    ),
 }));

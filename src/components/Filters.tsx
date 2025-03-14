@@ -3,8 +3,14 @@ import { categories, sources } from "../constants";
 import { Category, NewsSource } from "../constants/types";
 
 const Filters = () => {
-  const { filters, setSearch, toggleSource, toggleCategory, isDarkMode } =
-    useNewsStore();
+  const {
+    filters,
+    setSearch,
+    setDateRange,
+    toggleSource,
+    toggleCategory,
+    isDarkMode,
+  } = useNewsStore();
 
   return (
     <div
@@ -97,6 +103,63 @@ const Filters = () => {
               </span>
             </label>
           ))}
+        </div>
+      </div>
+
+      {/* Date Range */}
+      <div>
+        <h3
+          className={`text-sm font-medium mb-2 ${
+            isDarkMode ? "text-gray-200" : "text-gray-700"
+          }`}
+        >
+          Date Range
+        </h3>
+        <div className="space-y-2">
+          <div>
+            <label
+              htmlFor="dateFrom"
+              className={`block text-xs ${
+                isDarkMode ? "text-gray-400" : "text-gray-500"
+              }`}
+            >
+              From
+            </label>
+            <input
+              type="date"
+              id="dateFrom"
+              value={filters?.dateFrom || ""}
+              onChange={(e) => setDateRange(e?.target?.value, filters?.dateTo)}
+              className={`mt-1 block w-full rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 ${
+                isDarkMode
+                  ? "bg-gray-700 border-gray-600 text-white"
+                  : "border-gray-300 text-gray-900"
+              }`}
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="dateTo"
+              className={`block text-xs ${
+                isDarkMode ? "text-gray-400" : "text-gray-500"
+              }`}
+            >
+              To
+            </label>
+            <input
+              type="date"
+              id="dateTo"
+              value={filters?.dateTo || ""}
+              onChange={(e) =>
+                setDateRange(filters?.dateFrom, e?.target?.value)
+              }
+              className={`mt-1 block w-full rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 ${
+                isDarkMode
+                  ? "bg-gray-700 border-gray-600 text-white"
+                  : "border-gray-300 text-gray-900"
+              }`}
+            />
+          </div>
         </div>
       </div>
     </div>
