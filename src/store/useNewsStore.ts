@@ -3,7 +3,7 @@ import { INewsStore } from "../constants/interfaces";
 import { Category } from "../constants/types";
 
 export const useNewsStore = create<INewsStore>()((set) => ({
-  isDarkMode: false,
+  isDarkMode: true,
   toggleDarkMode: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
   filters: {
     search: "",
