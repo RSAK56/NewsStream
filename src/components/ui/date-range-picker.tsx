@@ -23,6 +23,9 @@ export function DateRangePicker({
   onDateChange,
   isDarkMode,
 }: DateRangePickerProps) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   return (
     <div className={cn("grid gap-2", className)}>
       <Popover>
@@ -59,6 +62,7 @@ export function DateRangePicker({
             selected={date}
             onSelect={onDateChange}
             numberOfMonths={2}
+            disabled={{ after: today }}
             className={isDarkMode ? "bg-gray-800 text-white" : ""}
           />
         </PopoverContent>
