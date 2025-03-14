@@ -1,6 +1,9 @@
 import { useNewsStore } from "../store/useNewsStore";
 import { categories, sources } from "../constants";
 import { Category, NewsSource } from "../constants/types";
+import { DateRange } from "react-day-picker";
+import { DateRangePicker } from "./ui/date-range-picker";
+import * as React from "react";
 
 const Filters = () => {
   const {
@@ -11,6 +14,19 @@ const Filters = () => {
     toggleCategory,
     isDarkMode,
   } = useNewsStore();
+
+  const [date, setDate] = React.useState<DateRange | undefined>({
+    from: filters.dateFrom ? new Date(filters.dateFrom) : undefined,
+    to: filters.dateTo ? new Date(filters.dateTo) : undefined,
+  });
+
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    setDate(range);
+    setDateRange(
+      range?.from?.toISOString().split("T")[0],
+      range?.to?.toISOString().split("T")[0],
+    );
+  };
 
   return (
     <div
@@ -115,52 +131,11 @@ const Filters = () => {
         >
           Date Range
         </h3>
-        <div className="space-y-2">
-          <div>
-            <label
-              htmlFor="dateFrom"
-              className={`block text-xs ${
-                isDarkMode ? "text-gray-400" : "text-gray-500"
-              }`}
-            >
-              From
-            </label>
-            <input
-              type="date"
-              id="dateFrom"
-              value={filters?.dateFrom || ""}
-              onChange={(e) => setDateRange(e?.target?.value, filters?.dateTo)}
-              className={`mt-1 block w-full rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 ${
-                isDarkMode
-                  ? "bg-gray-700 border-gray-600 text-white"
-                  : "border-gray-300 text-gray-900"
-              }`}
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="dateTo"
-              className={`block text-xs ${
-                isDarkMode ? "text-gray-400" : "text-gray-500"
-              }`}
-            >
-              To
-            </label>
-            <input
-              type="date"
-              id="dateTo"
-              value={filters?.dateTo || ""}
-              onChange={(e) =>
-                setDateRange(filters?.dateFrom, e?.target?.value)
-              }
-              className={`mt-1 block w-full rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 ${
-                isDarkMode
-                  ? "bg-gray-700 border-gray-600 text-white"
-                  : "border-gray-300 text-gray-900"
-              }`}
-            />
-          </div>
-        </div>
+        <DateRangePicker
+          date={date}
+          onDateChange={handleDateRangeChange}
+          isDarkMode={isDarkMode}
+        />
       </div>
     </div>
   );
