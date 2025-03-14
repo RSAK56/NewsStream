@@ -9,16 +9,38 @@ const NewsFeed = () => {
   const selectedSources = useNewsStore((state) => state.filters.sources);
   const searchTerm = useNewsStore((state) => state.filters.search);
   const selectedCategories = useNewsStore((state) => state.filters.categories);
+  const dateFrom = useNewsStore((state) => state.filters.dateFrom);
+  const dateTo = useNewsStore((state) => state.filters.dateTo);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: [...queryKeys.news, selectedSources, selectedCategories],
-    queryFn: () => fetchNews(selectedSources, selectedCategories),
+    queryKey: [
+      ...queryKeys.news,
+      selectedSources,
+      selectedCategories,
+      dateFrom,
+      dateTo,
+    ],
+    queryFn: () =>
+      fetchNews(selectedSources, selectedCategories, dateFrom, dateTo),
   });
 
   const filteredArticles =
     data?.articles?.filter((article) => {
       const searchLower = searchTerm?.toLowerCase() || "";
       const sourceLower = article?.source?.name?.toLowerCase() || "";
+
+      // Date filter
+      const articleDate = new Date(article?.publishedAt);
+      const fromDate = dateFrom ? new Date(dateFrom) : null;
+      const toDate = dateTo ? new Date(dateTo) : null;
+
+      // Set time to start of day for from date and end of day for to date
+      if (fromDate) fromDate.setHours(0, 0, 0, 0);
+      if (toDate) toDate.setHours(23, 59, 59, 999);
+
+      const matchesDate =
+        (!fromDate || articleDate >= fromDate) &&
+        (!toDate || articleDate <= toDate);
 
       // Search filter
       if (
@@ -42,7 +64,7 @@ const NewsFeed = () => {
         article?.title?.toLowerCase()?.includes(searchLower) ||
         article?.description?.toLowerCase()?.includes(searchLower);
 
-      return matchesCategory && matchesSearch;
+      return matchesCategory && matchesSearch && matchesDate;
     }) || [];
 
   const NoDataMessage = () => (

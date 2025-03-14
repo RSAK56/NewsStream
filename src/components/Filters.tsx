@@ -1,10 +1,32 @@
 import { useNewsStore } from "../store/useNewsStore";
 import { categories, sources } from "../constants";
 import { Category, NewsSource } from "../constants/types";
+import { DateRange } from "react-day-picker";
+import { DateRangePicker } from "./ui/date-range-picker";
+import * as React from "react";
 
 const Filters = () => {
-  const { filters, setSearch, toggleSource, toggleCategory, isDarkMode } =
-    useNewsStore();
+  const {
+    filters,
+    setSearch,
+    setDateRange,
+    toggleSource,
+    toggleCategory,
+    isDarkMode,
+  } = useNewsStore();
+
+  const [date, setDate] = React.useState<DateRange | undefined>({
+    from: filters.dateFrom ? new Date(filters.dateFrom) : undefined,
+    to: filters.dateTo ? new Date(filters.dateTo) : undefined,
+  });
+
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    setDate(range);
+    setDateRange(
+      range?.from?.toISOString().split("T")[0],
+      range?.to?.toISOString().split("T")[0],
+    );
+  };
 
   return (
     <div
@@ -98,6 +120,22 @@ const Filters = () => {
             </label>
           ))}
         </div>
+      </div>
+
+      {/* Date Range */}
+      <div>
+        <h3
+          className={`text-sm font-medium mb-2 ${
+            isDarkMode ? "text-gray-200" : "text-gray-700"
+          }`}
+        >
+          Date Range
+        </h3>
+        <DateRangePicker
+          date={date}
+          onDateChange={handleDateRangeChange}
+          isDarkMode={isDarkMode}
+        />
       </div>
     </div>
   );

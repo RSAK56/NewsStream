@@ -3,7 +3,7 @@ import { INewsStore } from "../constants/interfaces";
 import { Category } from "../constants/types";
 
 export const useNewsStore = create<INewsStore>()((set) => ({
-  isDarkMode: false,
+  isDarkMode: true,
   toggleDarkMode: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
   filters: {
     search: "",
@@ -41,6 +41,13 @@ export const useNewsStore = create<INewsStore>()((set) => ({
               ? state?.filters?.categories?.filter((c) => c !== category)
               : [...state?.filters?.categories, category],
           },
+        } as INewsStore),
+    ),
+  setDateRange: (from?: string, to?: string) =>
+    set(
+      (state) =>
+        ({
+          filters: { ...state.filters, dateFrom: from, dateTo: to },
         } as INewsStore),
     ),
 }));

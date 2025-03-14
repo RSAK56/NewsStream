@@ -13,6 +13,7 @@ export interface INewsStore {
   setSearch: (search: string) => void;
   toggleSource: (source: NewsSource) => void;
   toggleCategory: (category: Category) => void;
+  setDateRange: (from?: string, to?: string) => void;
 }
 
 export interface INewsAPIArticle {
