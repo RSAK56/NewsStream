@@ -30,10 +30,22 @@ const CATEGORY_MAPPINGS: {
   },
 };
 
-const fetchNewsAPI = async (category: string): Promise<INewsResponse> => {
+const fetchNewsAPI = async (
+  category: string,
+  from?: string,
+  to?: string,
+): Promise<INewsResponse> => {
   const API_KEY = import.meta.env.VITE_NEWS_API_KEY;
+
+  // Format dates to ISO 8601 (YYYY-MM-DDTHH:mm:ss)
+  const fromDate = from ? new Date(from).toISOString() : "";
+  const toDate = to ? new Date(to).toISOString() : "";
+  const dateParams = `${fromDate ? `&from=${fromDate}` : ""}${
+    toDate ? `&to=${toDate}` : ""
+  }`;
+
   const response = await fetch(
-    `https://newsapi.org/v2/top-headlines?country=us&apiKey=${API_KEY}&category=${category}`,
+    `https://newsapi.org/v2/top-headlines?country=us&apiKey=${API_KEY}&category=${category}${dateParams}`,
   );
 
   if (!response.ok) {
@@ -59,13 +71,19 @@ const fetchNewsAPI = async (category: string): Promise<INewsResponse> => {
   };
 };
 
-const fetchGuardian = async (category: string): Promise<INewsResponse> => {
+const fetchGuardian = async (
+  category: string,
+  from?: string,
+  to?: string,
+): Promise<INewsResponse> => {
   const API_KEY = import.meta.env.VITE_GUARDIAN_API_KEY;
   const guardianCategory =
     CATEGORY_MAPPINGS.guardian[category as Category] || "news";
 
+  const dateParams = `${from ? `&from=${from}` : ""}${to ? `&to=${to}` : ""}`;
+
   const response = await fetch(
-    `https://content.guardianapis.com/search?api-key=${API_KEY}&show-fields=thumbnail,bodyText&section=${guardianCategory}`,
+    `https://content.guardianapis.com/search?api-key=${API_KEY}&show-fields=thumbnail,bodyText&section=${guardianCategory}${dateParams}`,
   );
 
   if (!response.ok) {
@@ -91,20 +109,26 @@ const fetchGuardian = async (category: string): Promise<INewsResponse> => {
   };
 };
 
-const fetchNYTimes = async (category: string): Promise<INewsResponse> => {
+const fetchNYTimes = async (
+  category: string,
+  from?: string,
+  to?: string,
+): Promise<INewsResponse> => {
   const API_KEY = import.meta.env.VITE_NYTIMES_API_KEY;
   // First try mapped category, fallback to 'home' if not supported
   const nytCategory = CATEGORY_MAPPINGS.nytimes[category as Category] || "home";
 
+  const dateParams = `${from ? `&from=${from}` : ""}${to ? `&to=${to}` : ""}`;
+
   try {
     const response = await fetch(
-      `https://api.nytimes.com/svc/topstories/v2/${nytCategory}.json?api-key=${API_KEY}`,
+      `https://api.nytimes.com/svc/topstories/v2/${nytCategory}.json?api-key=${API_KEY}${dateParams}`,
     );
 
     if (!response.ok) {
       // If category request fails, fallback to home
       const fallbackResponse = await fetch(
-        `https://api.nytimes.com/svc/topstories/v2/home.json?api-key=${API_KEY}`,
+        `https://api.nytimes.com/svc/topstories/v2/home.json?api-key=${API_KEY}${dateParams}`,
       );
       if (!fallbackResponse.ok) {
         throw new Error("Failed to fetch news from NY Times");
@@ -142,18 +166,19 @@ const processFetchedData = (
 export const fetchNews = async (
   sources: string[],
   categories: string[],
+  dateFrom?: string,
+  dateTo?: string,
 ): Promise<INewsResponse> => {
   try {
     const promises = sources.flatMap((source) =>
-      // If no categories selected, fetch 'general'
       (categories.length > 0 ? categories : ["general"]).map((category) => {
         switch (source) {
           case "newsapi":
-            return fetchNewsAPI(category);
+            return fetchNewsAPI(category, dateFrom, dateTo);
           case "guardian":
-            return fetchGuardian(category);
+            return fetchGuardian(category, dateFrom, dateTo);
           case "nytimes":
-            return fetchNYTimes(category);
+            return fetchNYTimes(category, dateFrom, dateTo);
           default:
             return Promise.reject(new Error(`Unknown source: ${source}`));
         }

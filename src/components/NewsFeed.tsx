@@ -13,8 +13,15 @@ const NewsFeed = () => {
   const dateTo = useNewsStore((state) => state.filters.dateTo);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: [...queryKeys.news, selectedSources, selectedCategories],
-    queryFn: () => fetchNews(selectedSources, selectedCategories),
+    queryKey: [
+      ...queryKeys.news,
+      selectedSources,
+      selectedCategories,
+      dateFrom,
+      dateTo,
+    ],
+    queryFn: () =>
+      fetchNews(selectedSources, selectedCategories, dateFrom, dateTo),
   });
 
   const filteredArticles =
