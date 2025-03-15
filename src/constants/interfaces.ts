@@ -56,8 +56,32 @@ export interface INewsArticle {
     name: string;
   };
 }
+
 export interface INewsResponse {
   articles: INewsArticle[];
   status: string;
   totalResults: number;
+}
+
+export interface Article extends INewsArticle {
+  id: string;
+}
+
+export interface UserPreferences {
+  darkMode: boolean;
+  savedArticles: Article[];
+  newsFilters: {
+    categories: string[];
+    sources: string[];
+    dateRange?: {
+      from: Date;
+      to: Date;
+    };
+  };
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  preferences: UserPreferences;
 }
