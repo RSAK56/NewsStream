@@ -55,7 +55,13 @@ export const SignInModal = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className={`${isDarkMode ? "bg-gray-800" : "white"} sm:max-w-md`}
+        className={`${
+          isDarkMode ? "bg-gray-800" : "white"
+        } sm:max-w-md [&>button]:text-gray-400 [&>button]:cursor-pointer ${
+          isDarkMode
+            ? "[&>button]:hover:text-white"
+            : "[&>button]:hover:text-gray-600"
+        }`}
       >
         <DialogHeader className="flex flex-row justify-center items-center gap-2">
           <NotepadTextDashed
@@ -119,7 +125,10 @@ export const SignInModal = ({
             />
           </div>
 
-          <Button type="submit" className="w-full text-white bg-purple-400">
+          <Button
+            type="submit"
+            className="w-full text-white bg-purple-400 cursor-pointer"
+          >
             {isSignUp ? "Create Account" : "Sign In"}
           </Button>
         </form>
@@ -128,7 +137,7 @@ export const SignInModal = ({
           <Button
             variant="outline"
             onClick={() => setIsSignUp(!isSignUp)}
-            className="text-sm"
+            className="text-sm cursor-pointer"
           >
             {isSignUp
               ? "Already have an account? Sign in"
