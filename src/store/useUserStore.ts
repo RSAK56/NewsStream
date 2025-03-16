@@ -18,10 +18,35 @@ interface UserState {
   setSavedArticles: (articles: Article[]) => void;
   saveArticle: (article: Article) => Promise<void>;
   unsaveArticle: (article: Article) => Promise<void>;
+  init: () => Promise<void>;
 }
 
+const initializeUserFromStorage = async () => {
+  const storedUser = JSON.parse(localStorage.getItem("user") || "null");
+  if (storedUser) {
+    const { data: preferences } = await supabase
+      .from("user_preferences")
+      .select("preferences")
+      .eq("user_id", storedUser.id)
+      .single();
+
+    return {
+      ...storedUser,
+      preferences: preferences?.preferences || {
+        darkMode: false,
+        savedArticles: [],
+        newsFilters: {
+          categories: [],
+          sources: [],
+        },
+      },
+    };
+  }
+  return null;
+};
+
 export const useUserStore = create<UserState>((set, get) => ({
-  user: JSON.parse(localStorage.getItem("user") || "null"),
+  user: null,
   isAuthenticated: !!localStorage.getItem("user"),
   isLoading: true,
   preferences: {
@@ -31,6 +56,18 @@ export const useUserStore = create<UserState>((set, get) => ({
       categories: [],
       sources: [],
     },
+  },
+  init: async () => {
+    const userData = await initializeUserFromStorage();
+    if (userData) {
+      set({
+        user: userData,
+        preferences: userData.preferences,
+        isLoading: false,
+      });
+    } else {
+      set({ isLoading: false });
+    }
   },
   setSavedArticles: (articles) => {
     set((state) => ({
@@ -249,3 +286,5 @@ export const useUserStore = create<UserState>((set, get) => ({
     localStorage.removeItem("user");
   },
 }));
+
+useUserStore.getState().init();

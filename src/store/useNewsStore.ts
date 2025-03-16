@@ -13,6 +13,7 @@ useUserStore.subscribe((state) => {
         sources: state.user.preferences.newsFilters.sources || [],
         categories: state.user.preferences.newsFilters.categories || [],
       },
+      savedArticles: state.user.preferences.savedArticles || [],
     });
   }
 });
@@ -27,6 +28,7 @@ interface NewsState {
   };
   isDarkMode: boolean;
   showSaved: boolean;
+  savedArticles: Article[];
   toggleSavedView: () => void;
   toggleDarkMode: () => void;
   setSearch: (search: string) => void;
@@ -40,6 +42,7 @@ interface NewsState {
 export const useNewsStore = create<NewsState>((set, get) => ({
   isDarkMode: useUserStore.getState().user?.preferences.darkMode || false,
   showSaved: false,
+  savedArticles: useUserStore.getState().user?.preferences.savedArticles || [],
   toggleDarkMode: () => {
     set((state) => {
       const newDarkMode = !state.isDarkMode;

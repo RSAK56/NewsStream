@@ -118,7 +118,8 @@ const NewsFeed = () => {
     };
 
     const isArticleSaved = preferences.savedArticles?.some(
-      (savedArticle) => savedArticle.url === article.url,
+      (savedArticle) =>
+        savedArticle.url.toLowerCase() === article.url.toLowerCase(),
     );
 
     try {
@@ -130,6 +131,13 @@ const NewsFeed = () => {
     } catch (error) {
       console.error("Error saving article:", error);
     }
+  };
+
+  const isArticleSaved = (article: INewsArticle) => {
+    return preferences.savedArticles?.some(
+      (savedArticle) =>
+        savedArticle.url.toLowerCase() === article.url.toLowerCase(),
+    );
   };
 
   if (error) {
@@ -226,9 +234,7 @@ const NewsFeed = () => {
                       }}
                       className="p-2 hover:bg-gray-100 rounded-full"
                     >
-                      {preferences.savedArticles?.some(
-                        (savedArticle) => savedArticle.url === article.url,
-                      ) ? (
+                      {isArticleSaved(article) ? (
                         <BookmarkCheck className="h-5 w-5 text-blue-500" />
                       ) : (
                         <Bookmark className="h-5 w-5" />
