@@ -54,14 +54,22 @@ export const SignInModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader className="flex items-center gap-2">
+      <DialogContent
+        className={`${isDarkMode ? "bg-gray-800" : "white"} sm:max-w-md`}
+      >
+        <DialogHeader className="flex flex-row justify-center items-center gap-2">
           <NotepadTextDashed
             className={`h-8 w-8 ${
               isDarkMode ? "text-purple-400" : "text-purple-500"
             }`}
           />
-          <DialogTitle className="text-2xl">NewsStream</DialogTitle>
+          <DialogTitle
+            className={`${
+              isDarkMode ? "text-white" : "text-gray-800"
+            } text-2xl`}
+          >
+            NewsStream
+          </DialogTitle>
         </DialogHeader>
 
         {error && (
@@ -76,8 +84,14 @@ export const SignInModal = ({
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="email">Email address</Label>
+            <Label
+              className={isDarkMode ? "text-white" : "text-gray-800"}
+              htmlFor="email"
+            >
+              Email address
+            </Label>
             <Input
+              className={isDarkMode ? "text-white" : "text-gray-800"}
               type="email"
               id="email"
               value={email}
@@ -88,8 +102,14 @@ export const SignInModal = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label
+              className={isDarkMode ? "text-white" : "text-gray-800"}
+              htmlFor="password"
+            >
+              Password
+            </Label>
             <Input
+              className={isDarkMode ? "text-white" : "text-gray-800"}
               type="password"
               id="password"
               value={password}
@@ -99,7 +119,7 @@ export const SignInModal = ({
             />
           </div>
 
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full text-white bg-purple-400">
             {isSignUp ? "Create Account" : "Sign In"}
           </Button>
         </form>
