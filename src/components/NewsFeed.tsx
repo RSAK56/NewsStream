@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNewsStore } from "../store/useNewsStore";
+import { useUserStore } from "../store/useUserStore";
 import { fetchNews } from "../services/newsApi";
 import { queryKeys } from "../constants/keys";
 import { INewsArticle } from "../constants/interfaces";
+import { Bookmark } from "lucide-react";
 
 const NewsFeed = () => {
   const isDarkMode = useNewsStore((state) => state.isDarkMode);
@@ -11,6 +13,9 @@ const NewsFeed = () => {
   const selectedCategories = useNewsStore((state) => state.filters.categories);
   const dateFrom = useNewsStore((state) => state.filters.dateFrom);
   const dateTo = useNewsStore((state) => state.filters.dateTo);
+  const { user } = useUserStore();
+  const saveArticle = useNewsStore((state) => state.saveArticle);
+  const removeSavedArticle = useNewsStore((state) => state.removeSavedArticle);
 
   const { data, isLoading, error } = useQuery({
     queryKey: [
@@ -97,6 +102,14 @@ const NewsFeed = () => {
     </div>
   );
 
+  const handleSaveArticle = (article: INewsArticle) => {
+    if (!user) {
+      // You might want to show the sign-in modal here
+      return;
+    }
+    saveArticle(article);
+  };
+
   if (error) {
     return (
       <div className="space-y-6">
@@ -161,12 +174,30 @@ const NewsFeed = () => {
                   {article?.title}
                 </h3>
                 <p className="text-sm">{article?.description}</p>
-                <div className="mt-2 text-xs text-gray-500">
-                  <span>{article?.source.name}</span>
-                  <span className="mx-2">•</span>
-                  <span>
-                    {new Date(article?.publishedAt).toLocaleDateString()}
-                  </span>
+                <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
+                  <div>
+                    <span>{article?.source.name}</span>
+                    <span className="mx-2">•</span>
+                    <span>
+                      {new Date(article?.publishedAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleSaveArticle(article);
+                    }}
+                    className="p-1 hover:text-blue-600 transition-colors"
+                    title={
+                      article.isSaved ? "Remove from saved" : "Save article"
+                    }
+                  >
+                    <Bookmark
+                      size={18}
+                      className={article.isSaved ? "fill-current" : ""}
+                    />
+                  </button>
                 </div>
               </a>
             </article>

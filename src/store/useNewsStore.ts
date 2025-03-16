@@ -105,6 +105,7 @@ export const useNewsStore = create<INewsStore>((set, get) => ({
     const articleWithId: Article = {
       ...article,
       id: crypto.randomUUID(),
+      isSaved: true,
     };
 
     const updatedArticles = [

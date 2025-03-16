@@ -14,6 +14,8 @@ export interface INewsStore {
   toggleSource: (source: NewsSource) => void;
   toggleCategory: (category: Category) => void;
   setDateRange: (from?: string, to?: string) => void;
+  saveArticle: (article: INewsArticle) => Promise<void>;
+  removeSavedArticle: (articleId: string) => Promise<void>;
 }
 
 export interface INewsAPIArticle {
@@ -55,6 +57,7 @@ export interface INewsArticle {
   source: {
     name: string;
   };
+  isSaved?: boolean;
 }
 
 export interface INewsResponse {
@@ -65,6 +68,7 @@ export interface INewsResponse {
 
 export interface Article extends INewsArticle {
   id: string;
+  isSaved?: boolean;
 }
 
 export interface UserPreferences {
