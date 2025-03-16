@@ -112,8 +112,18 @@ export const useUserStore = create<UserState>((set, get) => ({
 
       if (error) throw error;
 
-      // Update local state
+      // Update local state and localStorage
+      const updatedUser = {
+        ...get().user!,
+        preferences: {
+          ...get().user!.preferences,
+          savedArticles: updatedSavedArticles,
+        },
+      };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+
       set((state) => ({
+        user: updatedUser,
         preferences: {
           ...state.preferences,
           savedArticles: updatedSavedArticles,
@@ -161,8 +171,18 @@ export const useUserStore = create<UserState>((set, get) => ({
 
       if (error) throw error;
 
-      // Update local state
+      // Update local state and localStorage
+      const updatedUser = {
+        ...get().user!,
+        preferences: {
+          ...get().user!.preferences,
+          savedArticles: updatedSavedArticles,
+        },
+      };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+
       set((state) => ({
+        user: updatedUser,
         preferences: {
           ...state.preferences,
           savedArticles: updatedSavedArticles,

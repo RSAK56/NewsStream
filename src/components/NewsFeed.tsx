@@ -6,7 +6,6 @@ import { queryKeys } from "../constants/keys";
 import { INewsArticle, Article } from "../constants/interfaces";
 import { Bookmark, BookmarkCheck } from "lucide-react";
 import { Button } from "./ui/button";
-import React from "react";
 
 const NewsFeed = () => {
   const isDarkMode = useNewsStore((state) => state.isDarkMode);

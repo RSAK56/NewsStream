@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { INewsStore, INewsArticle, Article } from "../constants/interfaces";
+import { INewsArticle, Article } from "../constants/interfaces";
 import { Category, NewsSource } from "../constants/types";
 import { useUserStore } from "./useUserStore";
 
