@@ -198,22 +198,24 @@ const NewsFeed = () => {
                       {new Date(article?.publishedAt).toLocaleDateString()}
                     </span>
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleSaveArticle(article);
-                    }}
-                    className="p-2 hover:bg-gray-100 rounded-full"
-                  >
-                    {preferences.savedArticles?.some(
-                      (savedArticle) => savedArticle.url === article.url,
-                    ) ? (
-                      <BookmarkCheck className="h-5 w-5 text-blue-500" />
-                    ) : (
-                      <Bookmark className="h-5 w-5" />
-                    )}
-                  </button>
+                  {user && (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleSaveArticle(article);
+                      }}
+                      className="p-2 hover:bg-gray-100 rounded-full"
+                    >
+                      {preferences.savedArticles?.some(
+                        (savedArticle) => savedArticle.url === article.url,
+                      ) ? (
+                        <BookmarkCheck className="h-5 w-5 text-blue-500" />
+                      ) : (
+                        <Bookmark className="h-5 w-5" />
+                      )}
+                    </button>
+                  )}
                 </div>
               </a>
             </article>
