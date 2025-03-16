@@ -130,5 +130,6 @@ export const useUserStore = create<UserState>((set, get) => ({
   signOut: async () => {
     await supabase.auth.signOut();
     set({ user: null });
+    localStorage.removeItem("user");
   },
 }));
