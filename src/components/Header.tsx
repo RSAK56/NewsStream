@@ -1,7 +1,7 @@
 import { Moon, NotepadTextDashed, Sun } from "lucide-react";
-import { useUserStore } from "../store/useUserStore";
 import { Button } from "./ui/button";
 import { useNewsStore } from "../store/useNewsStore";
+import { useUserStore } from "@/store/useUserStore";
 
 interface HeaderProps {
   onSignInClick: () => void;
@@ -49,12 +49,21 @@ const Header = ({ onSignInClick }: HeaderProps) => {
             {user ? (
               <div className="flex items-center space-x-4">
                 <span className="text-sm">{user.email}</span>
-                <Button onClick={() => signOut()} variant="outline" size="sm">
+                <Button
+                  onClick={() => signOut()}
+                  variant="outline"
+                  size="sm"
+                  className="hover:cursor-pointer"
+                >
                   Sign Out
                 </Button>
               </div>
             ) : (
-              <Button onClick={onSignInClick} size="sm">
+              <Button
+                onClick={onSignInClick}
+                size="sm"
+                className="hover:cursor-pointer"
+              >
                 Sign In
               </Button>
             )}

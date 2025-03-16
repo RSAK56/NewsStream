@@ -4,16 +4,18 @@ export interface INewsStore {
   isDarkMode: boolean;
   toggleDarkMode: () => void;
   filters: {
-    search: "";
-    sources: ["newsapi", "guardian", "nytimes"];
+    search: string;
+    sources: NewsSource[];
     categories: Category[];
-    dateFrom: undefined;
-    dateTo: undefined;
+    dateFrom: string | undefined;
+    dateTo: string | undefined;
   };
   setSearch: (search: string) => void;
   toggleSource: (source: NewsSource) => void;
   toggleCategory: (category: Category) => void;
   setDateRange: (from?: string, to?: string) => void;
+  saveArticle: (article: INewsArticle) => Promise<void>;
+  removeSavedArticle: (articleId: string) => Promise<void>;
 }
 
 export interface INewsAPIArticle {
@@ -55,6 +57,7 @@ export interface INewsArticle {
   source: {
     name: string;
   };
+  isSaved?: boolean;
 }
 
 export interface INewsResponse {
@@ -65,14 +68,15 @@ export interface INewsResponse {
 
 export interface Article extends INewsArticle {
   id: string;
+  isSaved?: boolean;
 }
 
 export interface UserPreferences {
   darkMode: boolean;
   savedArticles: Article[];
   newsFilters: {
-    categories: string[];
-    sources: string[];
+    categories: Category[];
+    sources: NewsSource[];
     dateRange?: {
       from: Date;
       to: Date;

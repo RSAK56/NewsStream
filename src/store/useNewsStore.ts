@@ -1,56 +1,103 @@
 import { create } from "zustand";
 import { INewsStore, INewsArticle, Article } from "../constants/interfaces";
-import { Category } from "../constants/types";
+import { Category, NewsSource } from "../constants/types";
 import { useUserStore } from "./useUserStore";
 
-export const useNewsStore = create<INewsStore>()((set, get) => ({
-  isDarkMode: true,
-  toggleDarkMode: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
+// Subscribe to user store changes
+useUserStore.subscribe((state) => {
+  if (state.user) {
+    useNewsStore.setState({
+      isDarkMode: state.user.preferences.darkMode,
+      filters: {
+        ...useNewsStore.getState().filters,
+        sources: state.user.preferences.newsFilters.sources || [],
+        categories: state.user.preferences.newsFilters.categories || [],
+      },
+    });
+  }
+});
+
+export const useNewsStore = create<INewsStore>((set, get) => ({
+  isDarkMode: useUserStore.getState().user?.preferences.darkMode || false,
+  toggleDarkMode: () => {
+    set((state) => {
+      const newDarkMode = !state.isDarkMode;
+      // Update user preferences in Supabase
+      useUserStore.getState().updatePreferences({
+        darkMode: newDarkMode,
+      });
+      return { isDarkMode: newDarkMode };
+    });
+  },
   filters: {
     search: "",
-    sources: ["newsapi", "guardian", "nytimes"],
-    categories: ["general"],
+    sources: useUserStore.getState().user?.preferences.newsFilters.sources || [
+      "newsapi",
+      "guardian",
+      "nytimes",
+    ],
+    categories:
+      useUserStore.getState().user?.preferences.newsFilters.categories || [],
     dateFrom: undefined,
     dateTo: undefined,
   },
-  setSearch: (search) =>
-    set(
-      (state) =>
-        ({
-          filters: { ...state?.filters, search },
-        } as INewsStore),
-    ),
-  toggleSource: (source) =>
-    set(
-      (state) =>
-        ({
-          filters: {
-            ...state?.filters,
-            sources: state?.filters?.sources?.includes(source)
-              ? state?.filters?.sources?.filter((s) => s !== source)
-              : [...state?.filters?.sources, source],
-          },
-        } as INewsStore),
-    ),
-  toggleCategory: (category: Category) =>
-    set(
-      (state) =>
-        ({
-          filters: {
-            ...state?.filters,
-            categories: state?.filters?.categories?.includes(category)
-              ? state?.filters?.categories?.filter((c) => c !== category)
-              : [...state?.filters?.categories, category],
-          },
-        } as INewsStore),
-    ),
+  setSearch: (search: string) =>
+    set((state) => ({
+      filters: { ...state.filters, search },
+    })),
+  toggleSource: (source: NewsSource) => {
+    set((state) => {
+      const newSources = state.filters.sources.includes(source)
+        ? state.filters.sources.filter((s) => s !== source)
+        : [...state.filters.sources, source];
+
+      // Update user preferences in Supabase
+      useUserStore.getState().updatePreferences({
+        newsFilters: {
+          ...useUserStore.getState().user?.preferences.newsFilters,
+          sources: newSources,
+          categories:
+            useUserStore.getState().user?.preferences.newsFilters.categories ||
+            [],
+        },
+      });
+
+      return {
+        filters: {
+          ...state.filters,
+          sources: newSources,
+        },
+      };
+    });
+  },
+  toggleCategory: (category: Category) => {
+    set((state) => {
+      const newCategories = state.filters.categories.includes(category)
+        ? state.filters.categories.filter((c) => c !== category)
+        : [...state.filters.categories, category];
+
+      // Update user preferences in Supabase
+      useUserStore.getState().updatePreferences({
+        newsFilters: {
+          ...useUserStore.getState().user?.preferences.newsFilters,
+          sources:
+            useUserStore.getState().user?.preferences.newsFilters.sources || [],
+          categories: newCategories,
+        },
+      });
+
+      return {
+        filters: {
+          ...state.filters,
+          categories: newCategories,
+        },
+      };
+    });
+  },
   setDateRange: (from?: string, to?: string) =>
-    set(
-      (state) =>
-        ({
-          filters: { ...state.filters, dateFrom: from, dateTo: to },
-        } as INewsStore),
-    ),
+    set((state) => ({
+      filters: { ...state.filters, dateFrom: from, dateTo: to },
+    })),
   saveArticle: async (article: INewsArticle) => {
     const userStore = useUserStore.getState();
     if (!userStore.user) return;
@@ -58,6 +105,7 @@ export const useNewsStore = create<INewsStore>()((set, get) => ({
     const articleWithId: Article = {
       ...article,
       id: crypto.randomUUID(),
+      isSaved: true,
     };
 
     const updatedArticles = [
