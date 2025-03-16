@@ -15,9 +15,10 @@ const Filters = () => {
     toggleSource,
     toggleCategory,
     isDarkMode,
+    showSaved,
   } = useNewsStore();
 
-  const { user } = useUserStore();
+  const { user, preferences } = useUserStore();
 
   // Initialize filters from user preferences when component mounts
   useEffect(() => {
@@ -51,6 +52,29 @@ const Filters = () => {
     );
   };
 
+  // Get available sources and categories from saved articles
+  const availableSources = React.useMemo(() => {
+    if (!showSaved) return sources;
+    return [
+      ...new Set(
+        preferences?.savedArticles?.map((article) =>
+          article.source.name.toLowerCase(),
+        ),
+      ),
+    ];
+  }, [showSaved, preferences?.savedArticles]);
+
+  const availableCategories = React.useMemo(() => {
+    if (!showSaved) return categories;
+    return [
+      ...new Set(
+        preferences?.savedArticles
+          ?.map((article) => article.category?.toLowerCase())
+          .filter(Boolean),
+      ),
+    ];
+  }, [showSaved, preferences?.savedArticles]);
+
   return (
     <div
       className={`${
@@ -77,7 +101,9 @@ const Filters = () => {
               ? "border-gray-600 text-white placeholder-gray-400"
               : "border-gray-300 text-gray-900 placeholder-gray-500"
           }`}
-          placeholder="Search articles..."
+          placeholder={
+            showSaved ? "Search saved articles..." : "Search articles..."
+          }
         />
       </div>
 
@@ -92,11 +118,21 @@ const Filters = () => {
         </h3>
         <div className="space-y-2">
           {sources.map((source: NewsSource) => (
-            <label key={source} className="flex items-center">
+            <label
+              key={source}
+              className={`flex items-center ${
+                showSaved && !availableSources.includes(source.toLowerCase())
+                  ? "opacity-50"
+                  : ""
+              }`}
+            >
               <input
                 type="checkbox"
                 checked={filters?.sources?.includes(source)}
                 onChange={() => toggleSource(source)}
+                disabled={
+                  showSaved && !availableSources.includes(source.toLowerCase())
+                }
                 className={`rounded text-blue-600 focus:ring-blue-500 ${
                   isDarkMode ? "bg-gray-700 border-gray-600" : "border-gray-300"
                 }`}
@@ -124,11 +160,23 @@ const Filters = () => {
         </h3>
         <div className="space-y-2">
           {categories?.map((category: Category) => (
-            <label key={category} className="flex items-center">
+            <label
+              key={category}
+              className={`flex items-center ${
+                showSaved &&
+                !availableCategories.includes(category.toLowerCase())
+                  ? "opacity-50"
+                  : ""
+              }`}
+            >
               <input
                 type="checkbox"
                 checked={filters?.categories?.includes(category)}
                 onChange={() => toggleCategory(category)}
+                disabled={
+                  showSaved &&
+                  !availableCategories.includes(category.toLowerCase())
+                }
                 className={`rounded text-blue-600 focus:ring-blue-500 ${
                   isDarkMode ? "bg-gray-700 border-gray-600" : "border-gray-300"
                 }`}

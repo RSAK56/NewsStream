@@ -10,13 +10,14 @@ import React from "react";
 
 const NewsFeed = () => {
   const isDarkMode = useNewsStore((state) => state.isDarkMode);
+  const showSaved = useNewsStore((state) => state.showSaved);
+  const toggleSavedView = useNewsStore((state) => state.toggleSavedView);
   const selectedSources = useNewsStore((state) => state.filters.sources);
   const searchTerm = useNewsStore((state) => state.filters.search);
   const selectedCategories = useNewsStore((state) => state.filters.categories);
   const dateFrom = useNewsStore((state) => state.filters.dateFrom);
   const dateTo = useNewsStore((state) => state.filters.dateTo);
   const { user, preferences, saveArticle, unsaveArticle } = useUserStore();
-  const [showSaved, setShowSaved] = React.useState(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: [
@@ -164,7 +165,7 @@ const NewsFeed = () => {
         </h2>
         {user && (
           <Button
-            onClick={() => setShowSaved(!showSaved)}
+            onClick={toggleSavedView}
             variant={showSaved ? "default" : "outline"}
             className={`${
               isDarkMode && !showSaved ? "border-gray-700 text-gray-800" : ""

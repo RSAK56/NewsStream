@@ -17,8 +17,29 @@ useUserStore.subscribe((state) => {
   }
 });
 
-export const useNewsStore = create<INewsStore>((set, get) => ({
+interface NewsState {
+  filters: {
+    search: string;
+    sources: NewsSource[];
+    categories: Category[];
+    dateFrom?: string;
+    dateTo?: string;
+  };
+  isDarkMode: boolean;
+  showSaved: boolean;
+  toggleSavedView: () => void;
+  toggleDarkMode: () => void;
+  setSearch: (search: string) => void;
+  toggleSource: (source: NewsSource) => void;
+  toggleCategory: (category: Category) => void;
+  setDateRange: (from?: string, to?: string) => void;
+  saveArticle: (article: INewsArticle) => Promise<void>;
+  removeSavedArticle: (articleId: string) => Promise<void>;
+}
+
+export const useNewsStore = create<NewsState>((set, get) => ({
   isDarkMode: useUserStore.getState().user?.preferences.darkMode || false,
+  showSaved: false,
   toggleDarkMode: () => {
     set((state) => {
       const newDarkMode = !state.isDarkMode;
@@ -127,4 +148,8 @@ export const useNewsStore = create<INewsStore>((set, get) => ({
       savedArticles: updatedArticles,
     });
   },
+  toggleSavedView: () =>
+    set((state) => ({
+      showSaved: !state.showSaved,
+    })),
 }));
