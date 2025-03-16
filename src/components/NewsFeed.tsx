@@ -5,6 +5,8 @@ import { fetchNews } from "../services/newsApi";
 import { queryKeys } from "../constants/keys";
 import { INewsArticle, Article } from "../constants/interfaces";
 import { Bookmark, BookmarkCheck } from "lucide-react";
+import { Button } from "./ui/button";
+import React from "react";
 
 const NewsFeed = () => {
   const isDarkMode = useNewsStore((state) => state.isDarkMode);
@@ -14,6 +16,7 @@ const NewsFeed = () => {
   const dateFrom = useNewsStore((state) => state.filters.dateFrom);
   const dateTo = useNewsStore((state) => state.filters.dateTo);
   const { user, preferences, saveArticle, unsaveArticle } = useUserStore();
+  const [showSaved, setShowSaved] = React.useState(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: [
@@ -28,47 +31,49 @@ const NewsFeed = () => {
   });
 
   const filteredArticles =
-    data?.articles?.filter((article) => {
-      const searchLower = searchTerm?.toLowerCase() || "";
-      const sourceLower = article?.source?.name?.toLowerCase() || "";
+    (showSaved
+      ? preferences.savedArticles
+      : data?.articles?.filter((article) => {
+          const searchLower = searchTerm?.toLowerCase() || "";
+          const sourceLower = article?.source?.name?.toLowerCase() || "";
 
-      // Date filter
-      const articleDate = new Date(article?.publishedAt);
-      const fromDate = dateFrom ? new Date(dateFrom) : null;
-      const toDate = dateTo ? new Date(dateTo) : null;
+          // Date filter
+          const articleDate = new Date(article?.publishedAt);
+          const fromDate = dateFrom ? new Date(dateFrom) : null;
+          const toDate = dateTo ? new Date(dateTo) : null;
 
-      // Set time to start of day for from date and end of day for to date
-      if (fromDate) fromDate.setHours(0, 0, 0, 0);
-      if (toDate) toDate.setHours(23, 59, 59, 999);
+          // Set time to start of day for from date and end of day for to date
+          if (fromDate) fromDate.setHours(0, 0, 0, 0);
+          if (toDate) toDate.setHours(23, 59, 59, 999);
 
-      const matchesDate =
-        (!fromDate || articleDate >= fromDate) &&
-        (!toDate || articleDate <= toDate);
+          const matchesDate =
+            (!fromDate || articleDate >= fromDate) &&
+            (!toDate || articleDate <= toDate);
 
-      // Search filter
-      if (
-        searchLower === "newsapi" ||
-        searchLower === "guardian" ||
-        searchLower === "times"
-      ) {
-        return sourceLower.includes(searchLower);
-      }
+          // Search filter
+          if (
+            searchLower === "newsapi" ||
+            searchLower === "guardian" ||
+            searchLower === "times"
+          ) {
+            return sourceLower.includes(searchLower);
+          }
 
-      // Category filter
-      const articleCategory = article?.category?.toLowerCase() || "";
-      const matchesCategory =
-        selectedCategories.length === 0 ||
-        selectedCategories.some((category) =>
-          articleCategory.includes(category.toLowerCase()),
-        );
+          // Category filter
+          const articleCategory = article?.category?.toLowerCase() || "";
+          const matchesCategory =
+            selectedCategories.length === 0 ||
+            selectedCategories.some((category) =>
+              articleCategory.includes(category.toLowerCase()),
+            );
 
-      // Text search filter
-      const matchesSearch =
-        article?.title?.toLowerCase()?.includes(searchLower) ||
-        article?.description?.toLowerCase()?.includes(searchLower);
+          // Text search filter
+          const matchesSearch =
+            article?.title?.toLowerCase()?.includes(searchLower) ||
+            article?.description?.toLowerCase()?.includes(searchLower);
 
-      return matchesCategory && matchesSearch && matchesDate;
-    }) || [];
+          return matchesCategory && matchesSearch && matchesDate;
+        })) || [];
 
   const NoDataMessage = () => (
     <div className="text-center py-12">
@@ -149,13 +154,26 @@ const NewsFeed = () => {
 
   return (
     <div className="space-y-6">
-      <h2
-        className={`text-xl font-semibold ${
-          isDarkMode ? "text-white" : "text-gray-900"
-        }`}
-      >
-        News Articles
-      </h2>
+      <div className="flex items-center justify-between">
+        <h2
+          className={`text-xl font-semibold ${
+            isDarkMode ? "text-white" : "text-gray-900"
+          }`}
+        >
+          News Articles
+        </h2>
+        {user && (
+          <Button
+            onClick={() => setShowSaved(!showSaved)}
+            variant={showSaved ? "default" : "outline"}
+            className={`${
+              isDarkMode && !showSaved ? "border-gray-700 text-gray-800" : ""
+            } hover:cursor-pointer`}
+          >
+            {showSaved ? "Show All" : "Saved"}
+          </Button>
+        )}
+      </div>
       <div
         className={`${
           isDarkMode ? "bg-gray-800 text-gray-300" : "bg-white text-gray-600"
