@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useUserStore } from "../../store/useUserStore";
+
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { z } from "zod";
+import { useUserStore } from "@/store/useUserStore";
 
 export const SignInModal = ({
   isOpen,
@@ -23,7 +25,7 @@ export const SignInModal = ({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
-  const { signIn, signUp } = useUserStore();
+  const { signIn, signUp, setUser } = useUserStore();
   const [error, setError] = useState("");
   const isDarkMode = useNewsStore((state) => state.isDarkMode);
 
@@ -41,8 +43,11 @@ export const SignInModal = ({
         setPassword("");
         setIsSignUp(false);
       } else {
-        await signIn(email, password);
-        onClose();
+        const response = await signIn(email, password);
+        if (response.user) {
+          setUser(response.user);
+          onClose();
+        }
       }
     } catch (error) {
       console.error("Auth error:", error);

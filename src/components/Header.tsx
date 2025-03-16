@@ -1,7 +1,7 @@
 import { Moon, NotepadTextDashed, Sun } from "lucide-react";
-import { useUserStore } from "../store/useUserStore";
 import { Button } from "./ui/button";
 import { useNewsStore } from "../store/useNewsStore";
+import { useUserStore } from "@/store/useUserStore";
 
 interface HeaderProps {
   onSignInClick: () => void;

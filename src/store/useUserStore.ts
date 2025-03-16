@@ -5,17 +5,30 @@ import { supabase, redirectURL } from "../lib/supabase";
 interface UserState {
   user: UserProfile | null;
   isLoading: boolean;
+  isAuthenticated: boolean;
   setUser: (user: UserProfile | null) => void;
   updatePreferences: (preferences: Partial<UserPreferences>) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (
+    email: string,
+    password: string,
+  ) => Promise<{ user: UserProfile | null }>;
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
 export const useUserStore = create<UserState>((set, get) => ({
-  user: null,
+  user: JSON.parse(localStorage.getItem("user") || "null"),
+  isAuthenticated: !!localStorage.getItem("user"),
   isLoading: true,
-  setUser: (user) => set({ user }),
+
+  setUser: (user) => {
+    if (user) {
+      localStorage.setItem("user", JSON.stringify(user));
+    } else {
+      localStorage.removeItem("user");
+    }
+    set({ user, isAuthenticated: !!user });
+  },
 
   updatePreferences: async (preferences) => {
     const { user } = get();
@@ -50,51 +63,33 @@ export const useUserStore = create<UserState>((set, get) => ({
 
     if (data.user) {
       try {
-        // First try to get existing preferences
         const { data: preferences } = await supabase
           .from("user_preferences")
           .select("preferences")
           .eq("user_id", data.user.id)
           .single();
 
-        if (!preferences) {
-          // If no preferences exist, create initial preferences
-          const { error: prefsError } = await supabase
-            .from("user_preferences")
-            .insert({
-              user_id: data.user.id,
-              preferences: {
-                darkMode: false,
-                savedArticles: [],
-                newsFilters: {
-                  categories: [],
-                  sources: [],
-                },
-              },
-            });
-
-          if (prefsError) throw prefsError;
-        }
-
-        set({
-          user: {
-            id: data.user.id,
-            email: data.user.email!,
-            preferences: preferences?.preferences || {
-              darkMode: false,
-              savedArticles: [],
-              newsFilters: {
-                categories: [],
-                sources: [],
-              },
+        const userData = {
+          id: data.user.id,
+          email: data.user.email!,
+          preferences: preferences?.preferences || {
+            darkMode: false,
+            savedArticles: [],
+            newsFilters: {
+              categories: [],
+              sources: [],
             },
           },
-        });
+        };
+
+        set({ user: userData });
+        return { user: userData };
       } catch (error) {
         console.error("Error setting up user preferences:", error);
         throw error;
       }
     }
+    return { user: null };
   },
 
   signUp: async (email: string, password: string) => {
