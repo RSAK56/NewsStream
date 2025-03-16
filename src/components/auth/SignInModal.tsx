@@ -22,10 +22,13 @@ export const SignInModal = ({
   isOpen: boolean;
   onClose: () => void;
 }) => {
+  const { signIn, signUp } = useUserStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
+
   const { signIn, signUp, setUser } = useUserStore();
+
   const [error, setError] = useState("");
   const isDarkMode = useNewsStore((state) => state.isDarkMode);
 
