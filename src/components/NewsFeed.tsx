@@ -3,8 +3,8 @@ import { useNewsStore } from "../store/useNewsStore";
 import { useUserStore } from "../store/useUserStore";
 import { fetchNews } from "../services/newsApi";
 import { queryKeys } from "../constants/keys";
-import { INewsArticle } from "../constants/interfaces";
-import { Bookmark } from "lucide-react";
+import { INewsArticle, Article } from "../constants/interfaces";
+import { Bookmark, BookmarkCheck } from "lucide-react";
 
 const NewsFeed = () => {
   const isDarkMode = useNewsStore((state) => state.isDarkMode);
@@ -13,9 +13,7 @@ const NewsFeed = () => {
   const selectedCategories = useNewsStore((state) => state.filters.categories);
   const dateFrom = useNewsStore((state) => state.filters.dateFrom);
   const dateTo = useNewsStore((state) => state.filters.dateTo);
-  const { user } = useUserStore();
-  const saveArticle = useNewsStore((state) => state.saveArticle);
-  const removeSavedArticle = useNewsStore((state) => state.removeSavedArticle);
+  const { user, preferences, saveArticle, unsaveArticle } = useUserStore();
 
   const { data, isLoading, error } = useQuery({
     queryKey: [
@@ -102,12 +100,30 @@ const NewsFeed = () => {
     </div>
   );
 
-  const handleSaveArticle = (article: INewsArticle) => {
+  const handleSaveArticle = async (article: INewsArticle) => {
     if (!user) {
-      // You might want to show the sign-in modal here
+      // Handle unauthenticated user - maybe show sign in modal
       return;
     }
-    saveArticle(article);
+
+    const articleWithId: Article = {
+      ...article,
+      id: article.url,
+    };
+
+    const isArticleSaved = preferences.savedArticles?.some(
+      (savedArticle) => savedArticle.url === article.url,
+    );
+
+    try {
+      if (isArticleSaved) {
+        await unsaveArticle(articleWithId);
+      } else {
+        await saveArticle(articleWithId);
+      }
+    } catch (error) {
+      console.error("Error saving article:", error);
+    }
   };
 
   if (error) {
@@ -188,15 +204,15 @@ const NewsFeed = () => {
                       e.stopPropagation();
                       handleSaveArticle(article);
                     }}
-                    className="p-1 hover:text-blue-600 transition-colors"
-                    title={
-                      article.isSaved ? "Remove from saved" : "Save article"
-                    }
+                    className="p-2 hover:bg-gray-100 rounded-full"
                   >
-                    <Bookmark
-                      size={18}
-                      className={article.isSaved ? "fill-current" : ""}
-                    />
+                    {preferences.savedArticles?.some(
+                      (savedArticle) => savedArticle.url === article.url,
+                    ) ? (
+                      <BookmarkCheck className="h-5 w-5 text-blue-500" />
+                    ) : (
+                      <Bookmark className="h-5 w-5" />
+                    )}
                   </button>
                 </div>
               </a>

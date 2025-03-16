@@ -1,11 +1,12 @@
 import { create } from "zustand";
-import { UserProfile, UserPreferences } from "../constants/interfaces";
+import { UserProfile, UserPreferences, Article } from "../constants/interfaces";
 import { supabase, redirectURL } from "../lib/supabase";
 
 interface UserState {
   user: UserProfile | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  preferences: UserPreferences;
   setUser: (user: UserProfile | null) => void;
   updatePreferences: (preferences: Partial<UserPreferences>) => Promise<void>;
   signIn: (
@@ -14,12 +15,127 @@ interface UserState {
   ) => Promise<{ user: UserProfile | null }>;
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  setSavedArticles: (articles: Article[]) => void;
+  saveArticle: (article: Article) => Promise<void>;
+  unsaveArticle: (article: Article) => Promise<void>;
 }
 
 export const useUserStore = create<UserState>((set, get) => ({
   user: JSON.parse(localStorage.getItem("user") || "null"),
   isAuthenticated: !!localStorage.getItem("user"),
   isLoading: true,
+  preferences: {
+    darkMode: false,
+    savedArticles: [],
+    newsFilters: {
+      categories: [],
+      sources: [],
+    },
+  },
+  setSavedArticles: (articles) => {
+    set((state) => ({
+      preferences: { ...state.preferences, savedArticles: articles },
+    }));
+  },
+  saveArticle: async (article) => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Get the existing preference row first
+      const { data: existingPref } = await supabase
+        .from("user_preferences")
+        .select("id, preferences")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!existingPref) return;
+
+      const currentPreferences = existingPref.preferences || {
+        savedArticles: [],
+      };
+      const updatedSavedArticles = [
+        ...(currentPreferences.savedArticles || []),
+        article,
+      ];
+
+      // Update existing row
+      const { error } = await supabase
+        .from("user_preferences")
+        .update({
+          preferences: {
+            ...currentPreferences,
+            savedArticles: updatedSavedArticles,
+          },
+        })
+        .eq("user_id", user.id)
+        .eq("id", existingPref.id);
+
+      if (error) throw error;
+
+      // Update local state
+      set((state) => ({
+        preferences: {
+          ...state.preferences,
+          savedArticles: updatedSavedArticles,
+        },
+      }));
+    } catch (error) {
+      console.error("Error saving article:", error);
+      throw error;
+    }
+  },
+  unsaveArticle: async (article) => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Get the existing preference row first
+      const { data: existingPref } = await supabase
+        .from("user_preferences")
+        .select("id, preferences")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!existingPref) return;
+
+      const currentPreferences = existingPref.preferences || {
+        savedArticles: [],
+      };
+      const updatedSavedArticles = (
+        currentPreferences.savedArticles || []
+      ).filter((savedArticle: Article) => savedArticle.url !== article.url);
+
+      // Update existing row
+      const { error } = await supabase
+        .from("user_preferences")
+        .update({
+          preferences: {
+            ...currentPreferences,
+            savedArticles: updatedSavedArticles,
+          },
+        })
+        .eq("user_id", user.id)
+        .eq("id", existingPref.id);
+
+      if (error) throw error;
+
+      // Update local state
+      set((state) => ({
+        preferences: {
+          ...state.preferences,
+          savedArticles: updatedSavedArticles,
+        },
+      }));
+    } catch (error) {
+      console.error("Error unsaving article:", error);
+      throw error;
+    }
+  },
 
   setUser: (user) => {
     if (user) {
