@@ -3,6 +3,20 @@ import { INewsStore, INewsArticle, Article } from "../constants/interfaces";
 import { Category, NewsSource } from "../constants/types";
 import { useUserStore } from "./useUserStore";
 
+// Subscribe to user store changes
+useUserStore.subscribe((state) => {
+  if (state.user) {
+    useNewsStore.setState({
+      isDarkMode: state.user.preferences.darkMode,
+      filters: {
+        ...useNewsStore.getState().filters,
+        sources: state.user.preferences.newsFilters.sources || [],
+        categories: state.user.preferences.newsFilters.categories || [],
+      },
+    });
+  }
+});
+
 export const useNewsStore = create<INewsStore>((set, get) => ({
   isDarkMode: useUserStore.getState().user?.preferences.darkMode || false,
   toggleDarkMode: () => {
