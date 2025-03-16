@@ -55,13 +55,24 @@ const Filters = () => {
   // Get available sources and categories from saved articles
   const availableSources = React.useMemo(() => {
     if (!showSaved) return sources;
-    return [
-      ...new Set(
-        preferences?.savedArticles?.map((article) =>
-          article.source.name.toLowerCase(),
-        ),
-      ),
-    ];
+
+    const sourceNames = preferences?.savedArticles?.map((article) =>
+      article.source.name.toLowerCase(),
+    );
+
+    return sources.filter((source) => {
+      const sourceLower = source.toLowerCase();
+      const hasSource = sourceNames?.some((name) => {
+        // Handle different variations of "times"
+        if (sourceLower === "times" || sourceLower === "nytimes") {
+          return name.includes("times") || name.includes("nytimes");
+        }
+        // Handle other sources
+        return name.includes(sourceLower) || sourceLower.includes(name);
+      });
+
+      return hasSource;
+    });
   }, [showSaved, preferences?.savedArticles]);
 
   const availableCategories = React.useMemo(() => {
@@ -121,7 +132,7 @@ const Filters = () => {
             <label
               key={source}
               className={`flex items-center ${
-                showSaved && !availableSources.includes(source.toLowerCase())
+                showSaved && !availableSources.includes(source)
                   ? "opacity-50"
                   : ""
               }`}
@@ -130,9 +141,7 @@ const Filters = () => {
                 type="checkbox"
                 checked={filters?.sources?.includes(source)}
                 onChange={() => toggleSource(source)}
-                disabled={
-                  showSaved && !availableSources.includes(source.toLowerCase())
-                }
+                disabled={showSaved && !availableSources.includes(source)}
                 className={`rounded text-blue-600 focus:ring-blue-500 ${
                   isDarkMode ? "bg-gray-700 border-gray-600" : "border-gray-300"
                 }`}
