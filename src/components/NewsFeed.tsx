@@ -6,6 +6,7 @@ import { queryKeys } from "../constants/keys";
 import { INewsArticle, Article } from "../constants/interfaces";
 import { Bookmark, BookmarkCheck } from "lucide-react";
 import { Button } from "./ui/button";
+import React from "react";
 
 const NewsFeed = () => {
   const isDarkMode = useNewsStore((state) => state.isDarkMode);
@@ -30,50 +31,62 @@ const NewsFeed = () => {
       fetchNews(selectedSources, selectedCategories, dateFrom, dateTo),
   });
 
-  const filteredArticles =
-    (showSaved
-      ? preferences.savedArticles
-      : data?.articles?.filter((article) => {
-          const searchLower = searchTerm?.toLowerCase() || "";
-          const sourceLower = article?.source?.name?.toLowerCase() || "";
+  const filteredArticles = React.useMemo(() => {
+    const articles = showSaved ? preferences.savedArticles : data?.articles;
+    if (!articles) return [];
 
-          // Date filter
-          const articleDate = new Date(article?.publishedAt);
-          const fromDate = dateFrom ? new Date(dateFrom) : null;
-          const toDate = dateTo ? new Date(dateTo) : null;
+    return articles.filter((article) => {
+      const searchLower = searchTerm?.toLowerCase() || "";
+      const sourceLower = article?.source?.name?.toLowerCase() || "";
 
-          // Set time to start of day for from date and end of day for to date
-          if (fromDate) fromDate.setHours(0, 0, 0, 0);
-          if (toDate) toDate.setHours(23, 59, 59, 999);
+      // Date filter
+      const articleDate = new Date(article?.publishedAt);
+      const fromDate = dateFrom ? new Date(dateFrom) : null;
+      const toDate = dateTo ? new Date(dateTo) : null;
 
-          const matchesDate =
-            (!fromDate || articleDate >= fromDate) &&
-            (!toDate || articleDate <= toDate);
+      // Set time to start of day for from date and end of day for to date
+      if (fromDate) fromDate.setHours(0, 0, 0, 0);
+      if (toDate) toDate.setHours(23, 59, 59, 999);
 
-          // Search filter
-          if (
-            searchLower === "newsapi" ||
-            searchLower === "guardian" ||
-            searchLower === "times"
-          ) {
-            return sourceLower.includes(searchLower);
-          }
+      const matchesDate =
+        (!fromDate || articleDate >= fromDate) &&
+        (!toDate || articleDate <= toDate);
 
-          // Category filter
-          const articleCategory = article?.category?.toLowerCase() || "";
-          const matchesCategory =
-            selectedCategories.length === 0 ||
-            selectedCategories.some((category) =>
-              articleCategory.includes(category.toLowerCase()),
-            );
+      // Source filter
+      const matchesSource =
+        selectedSources.length === 0 ||
+        selectedSources.some(
+          (source) =>
+            sourceLower.includes(source.toLowerCase()) ||
+            source.toLowerCase().includes(sourceLower),
+        );
 
-          // Text search filter
-          const matchesSearch =
-            article?.title?.toLowerCase()?.includes(searchLower) ||
-            article?.description?.toLowerCase()?.includes(searchLower);
+      // Category filter
+      const articleCategory = article?.category?.toLowerCase() || "";
+      const matchesCategory =
+        selectedCategories.length === 0 ||
+        selectedCategories.some((category) =>
+          articleCategory.includes(category.toLowerCase()),
+        );
 
-          return matchesCategory && matchesSearch && matchesDate;
-        })) || [];
+      // Text search filter
+      const matchesSearch =
+        article?.title?.toLowerCase()?.includes(searchLower) ||
+        article?.description?.toLowerCase()?.includes(searchLower) ||
+        sourceLower.includes(searchLower);
+
+      return matchesSource && matchesCategory && matchesSearch && matchesDate;
+    });
+  }, [
+    showSaved,
+    data?.articles,
+    preferences.savedArticles,
+    searchTerm,
+    selectedSources,
+    selectedCategories,
+    dateFrom,
+    dateTo,
+  ]);
 
   const NoDataMessage = () => (
     <div className="text-center py-12">
