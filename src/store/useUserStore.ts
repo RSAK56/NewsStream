@@ -231,7 +231,6 @@ export const useUserStore = create<UserState>((set, get) => ({
       .select();
 
     if (!error) {
-      console.log("Update successful:", data);
       set({
         user: {
           ...user,
