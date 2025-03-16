@@ -37,19 +37,36 @@ export const useUserStore = create<UserState>((set, get) => ({
     const updatedPreferences = {
       ...user.preferences,
       ...preferences,
+      newsFilters: {
+        ...user.preferences.newsFilters,
+        ...(preferences.newsFilters || {}),
+      },
     };
 
-    const { error } = await supabase
+    // First try to get the existing preference row
+    const { data: existingPref } = await supabase
       .from("user_preferences")
-      .upsert({ user_id: user.id, preferences: updatedPreferences });
+      .select("id")
+      .eq("user_id", user.id)
+      .single();
+
+    const { data, error } = await supabase
+      .from("user_preferences")
+      .update({ preferences: updatedPreferences })
+      .eq("user_id", user.id)
+      .eq("id", existingPref?.id)
+      .select();
 
     if (!error) {
+      console.log("Update successful:", data);
       set({
         user: {
           ...user,
           preferences: updatedPreferences,
         },
       });
+    } else {
+      console.error("Error updating preferences:", error);
     }
   },
 

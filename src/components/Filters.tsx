@@ -4,6 +4,8 @@ import { Category, NewsSource } from "../constants/types";
 import { DateRange } from "react-day-picker";
 import { DateRangePicker } from "./ui/date-range-picker";
 import * as React from "react";
+import { useUserStore } from "../store/useUserStore";
+import { useEffect } from "react";
 
 const Filters = () => {
   const {
@@ -14,6 +16,27 @@ const Filters = () => {
     toggleCategory,
     isDarkMode,
   } = useNewsStore();
+
+  const { user } = useUserStore();
+
+  // Initialize filters from user preferences when component mounts
+  useEffect(() => {
+    if (user) {
+      const { newsFilters } = user.preferences;
+      // Apply saved sources
+      newsFilters.sources.forEach((source) => {
+        if (!filters.sources.includes(source)) {
+          toggleSource(source as NewsSource);
+        }
+      });
+      // Apply saved categories
+      newsFilters.categories.forEach((category) => {
+        if (!filters.categories.includes(category)) {
+          toggleCategory(category as Category);
+        }
+      });
+    }
+  }, [user]);
 
   const [date, setDate] = React.useState<DateRange | undefined>({
     from: filters.dateFrom ? new Date(filters.dateFrom) : undefined,

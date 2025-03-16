@@ -4,11 +4,11 @@ export interface INewsStore {
   isDarkMode: boolean;
   toggleDarkMode: () => void;
   filters: {
-    search: "";
-    sources: ["newsapi", "guardian", "nytimes"];
+    search: string;
+    sources: NewsSource[];
     categories: Category[];
-    dateFrom: undefined;
-    dateTo: undefined;
+    dateFrom: string | undefined;
+    dateTo: string | undefined;
   };
   setSearch: (search: string) => void;
   toggleSource: (source: NewsSource) => void;
@@ -71,8 +71,8 @@ export interface UserPreferences {
   darkMode: boolean;
   savedArticles: Article[];
   newsFilters: {
-    categories: string[];
-    sources: string[];
+    categories: Category[];
+    sources: NewsSource[];
     dateRange?: {
       from: Date;
       to: Date;
