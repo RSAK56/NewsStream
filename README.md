@@ -1,46 +1,48 @@
 # Newsstream
 
-A modern newsstream web application built with React and TypeScript that pulls articles from various trusted news sources and presents them in a clean, user-friendly interface.
+A modern newsstream web application built with React and TypeScript that displays news articles with filtering capabilities and user preferences.
 
 ## Features
 
-- **Article Search & Filtering**
+- **News Feed**
 
-  - Search articles by keywords
-  - Filter results by date, category, and source
-  - Advanced sorting options
+  - Real-time news article display
+  - Clean and intuitive interface
+  - Article preview cards with headlines and summaries
 
-- **Personalized News Feed**
+- **Article Filtering**
 
-  - Customize news preferences
-  - Select preferred sources
-  - Choose favorite categories
-  - Follow specific authors
+  - Filter by category
+  - Filter by news source
+  - Dynamic filter updates
 
-- **Responsive Design**
-  - Mobile-first approach
-  - Optimized for all device sizes
-  - Seamless reading experience
+- **User Experience**
+  - Responsive design for all devices
+  - Dark/Light theme support
+  - Smooth loading states
+  - Error handling
 
 ## Tech Stack
 
-- React.js with TypeScript
+- React 18 with TypeScript
+- Vite for build tooling
+- Zustand for state management
+- NewsAPI for content
 - Docker for containerization
-- News APIs Integration:
-  - NewsAPI
-  - The Guardian
-  - New York Times
-    (Note: Final API selection may vary based on implementation)
+- Supabase for backend services
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js (v16 or higher)
-- Docker
+- Node.js (v14 or higher)
+- npm or yarn
+- Docker & Docker Compose (for containerized setup)
 - A modern web browser
 
 ### Installation
+
+#### Local Development Setup
 
 1. Clone the repository:
 
@@ -53,65 +55,75 @@ cd newsstream
 
 ```bash
 npm install
+# or
+yarn install
 ```
 
-3. Create a `.env` file in the root directory and add your API keys:
+3. Create a `.env` file in the root directory:
 
 ```bash
 VITE_NEWS_API_KEY=your_news_api_key
 VITE_GUARDIAN_API_KEY=your_guardian_api_key
-VITE_NYT_API_KEY=your_nyt_api_key
+VITE_NYTIMES_API_KEY=your_nytimes_api_key
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SITE_URL=http://localhost:5173
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-### Running the Application
+#### Docker Setup
 
-#### Development Mode
+1. Create a `.env` file as shown above
 
-```bash
-npm run dev
-```
-
-The application will be available at `http://localhost:5173`
-
-#### Using Docker
-
-1. Build the Docker image:
+2. Build and run using Docker Compose (recommended):
 
 ```bash
-docker build -t newsstream .
-```
-
-2. Run the container:
-
-```bash
-docker run -p 5173:5173 newsstream
-```
-
-The application will be available at `http://localhost:5173`
-
-#### Using Docker Compose
-
-1. Start the application:
-
-```bash
-docker-compose up
-```
-
-2. For running in detached mode:
-
-```bash
+# Start the application
 docker-compose up -d
-```
 
-3. To stop the containers:
+# View logs
+docker-compose logs -f
 
-```bash
+# Stop the application
 docker-compose down
 ```
 
+Or using Docker directly:
+
+```bash
+# Build the image
+docker build -t newsstream .
+
+# Run the container
+docker run -p 5173:5173 --env-file .env newsstream
+```
+
 The application will be available at `http://localhost:5173`
 
-Note: When using Docker, make sure your environment variables are properly configured. You can create a `.env` file that Docker will use during the build process. However, remember that the `.env` file is ignored in Docker builds for security reasons - you'll need to pass environment variables through Docker Compose or at runtime.
+### Environment Variables in Docker
+
+When using Docker, you can handle environment variables in several ways:
+
+1. Using docker-compose.yml (recommended):
+
+```yaml
+services:
+  app:
+    build: .
+    env_file:
+      - .env
+```
+
+2. Using Docker run with --env-file:
+
+```bash
+docker run --env-file .env -p 5173:5173 newsstream
+```
+
+3. Passing individual environment variables:
+
+```bash
+docker run -e VITE_NEWS_API_KEY=your_key -p 5173:5173 newsstream
+```
 
 ## Project Structure
 
@@ -119,27 +131,32 @@ Note: When using Docker, make sure your environment variables are properly confi
 newsstream/
 ├── src/
 │   ├── components/
-│   ├── services/
-│   ├── hooks/
-│   ├── types/
-│   └── utils/
+│   │   ├── NewsFeed.tsx    # Main news feed component
+│   │   ├── Header.tsx      # Application header
+│   │   └── Filters.tsx     # News filtering options
+│   ├── store/
+│   │   ├── useNewsStore.ts # News state management
+│   │   └── useUserStore.ts # User preferences state
+│   ├── App.tsx
+│   └── main.tsx
 ├── public/
 ├── Dockerfile
+├── docker-compose.yml
 └── README.md
 ```
 
-## Development Guidelines
+## State Management
 
-This project follows these principles:
+The application uses Zustand for state management with two main stores:
 
-- DRY (Don't Repeat Yourself)
-- KISS (Keep It Simple, Stupid)
-- SOLID Principles
-  - Single Responsibility
-  - Open-Closed
-  - Liskov Substitution
-  - Interface Segregation
-  - Dependency Inversion
+- `useNewsStore`: Manages news articles, loading states, and filtering logic
+- `useUserStore`: Handles user preferences and theme settings
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build locally
 
 ## Contributing
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, forwardRef, type ForwardedRef } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,22 +12,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { z } from "zod";
 import { useUserStore } from "@/store/useUserStore";
 
-export const SignInModal = ({
-  isOpen,
-  onClose,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-}) => {
+export const SignInModal = forwardRef<
+  HTMLDivElement,
+  {
+    isOpen: boolean;
+    onClose: () => void;
+  }
+>(({ isOpen, onClose }, ref) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
-
   const { signIn, signUp, setUser } = useUserStore();
-
   const [error, setError] = useState("");
   const isDarkMode = useNewsStore((state) => state.isDarkMode);
 
@@ -62,6 +59,7 @@ export const SignInModal = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
+        ref={ref}
         className={`${
           isDarkMode ? "bg-gray-800" : "white"
         } sm:max-w-md [&>button]:text-gray-400 [&>button]:cursor-pointer ${
@@ -154,6 +152,8 @@ export const SignInModal = ({
       </DialogContent>
     </Dialog>
   );
-};
+});
+
+SignInModal.displayName = "SignInModal";
 
 export default SignInModal;

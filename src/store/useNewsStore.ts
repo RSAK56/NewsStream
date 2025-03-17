@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { INewsStore, INewsArticle, Article } from "../constants/interfaces";
-import { Category, NewsSource } from "../constants/types";
+import { INewsArticle, IArticle, INewsState } from "../constants/interfaces";
+import { TCategory, TNewsSource } from "../constants/types";
 import { useUserStore } from "./useUserStore";
 
 // Subscribe to user store changes
@@ -13,12 +13,15 @@ useUserStore.subscribe((state) => {
         sources: state.user.preferences.newsFilters.sources || [],
         categories: state.user.preferences.newsFilters.categories || [],
       },
+      savedArticles: state.user.preferences.savedArticles || [],
     });
   }
 });
 
-export const useNewsStore = create<INewsStore>((set, get) => ({
+export const useNewsStore = create<INewsState>((set) => ({
   isDarkMode: useUserStore.getState().user?.preferences.darkMode || false,
+  showSaved: false,
+  savedArticles: useUserStore.getState().user?.preferences.savedArticles || [],
   toggleDarkMode: () => {
     set((state) => {
       const newDarkMode = !state.isDarkMode;
@@ -45,7 +48,7 @@ export const useNewsStore = create<INewsStore>((set, get) => ({
     set((state) => ({
       filters: { ...state.filters, search },
     })),
-  toggleSource: (source: NewsSource) => {
+  toggleSource: (source: TNewsSource) => {
     set((state) => {
       const newSources = state.filters.sources.includes(source)
         ? state.filters.sources.filter((s) => s !== source)
@@ -70,7 +73,7 @@ export const useNewsStore = create<INewsStore>((set, get) => ({
       };
     });
   },
-  toggleCategory: (category: Category) => {
+  toggleCategory: (category: TCategory) => {
     set((state) => {
       const newCategories = state.filters.categories.includes(category)
         ? state.filters.categories.filter((c) => c !== category)
@@ -102,7 +105,7 @@ export const useNewsStore = create<INewsStore>((set, get) => ({
     const userStore = useUserStore.getState();
     if (!userStore.user) return;
 
-    const articleWithId: Article = {
+    const articleWithId: IArticle = {
       ...article,
       id: crypto.randomUUID(),
       isSaved: true,
@@ -127,4 +130,8 @@ export const useNewsStore = create<INewsStore>((set, get) => ({
       savedArticles: updatedArticles,
     });
   },
+  toggleSavedView: () =>
+    set((state) => ({
+      showSaved: !state.showSaved,
+    })),
 }));

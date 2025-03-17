@@ -1,11 +1,20 @@
-import { useNewsStore } from "../store/useNewsStore";
-import { categories, sources } from "../constants";
-import { Category, NewsSource } from "../constants/types";
-import { DateRange } from "react-day-picker";
-import { DateRangePicker } from "./ui/date-range-picker";
 import * as React from "react";
-import { useUserStore } from "../store/useUserStore";
 import { useEffect } from "react";
+
+import { DateRange } from "react-day-picker";
+
+import { categories, sources } from "../constants";
+import { useUserStore } from "../store/useUserStore";
+import { DateRangePicker } from "./ui/date-range-picker";
+import { TCategory, TNewsSource } from "../constants/types";
+
+import { isCategory } from "@/lib/utils";
+import { isNewsSource } from "@/lib/utils";
+
+import { useNewsStore } from "../store/useNewsStore";
+
+import { SourcesFilter } from "./filters/SourcesFilter";
+import { CategoriesFilter } from "./filters/CategoriesFilter";
 
 const Filters = () => {
   const {
@@ -15,24 +24,31 @@ const Filters = () => {
     toggleSource,
     toggleCategory,
     isDarkMode,
+    showSaved,
   } = useNewsStore();
 
-  const { user } = useUserStore();
+  const { user, preferences } = useUserStore();
 
   // Initialize filters from user preferences when component mounts
   useEffect(() => {
     if (user) {
       const { newsFilters } = user.preferences;
       // Apply saved sources
-      newsFilters.sources.forEach((source) => {
-        if (!filters.sources.includes(source)) {
-          toggleSource(source as NewsSource);
+      newsFilters.sources.forEach((source: string) => {
+        if (
+          !filters.sources.includes(source as TNewsSource) &&
+          isNewsSource(source)
+        ) {
+          toggleSource(source as TNewsSource);
         }
       });
       // Apply saved categories
-      newsFilters.categories.forEach((category) => {
-        if (!filters.categories.includes(category)) {
-          toggleCategory(category as Category);
+      newsFilters.categories.forEach((category: string) => {
+        if (
+          !filters.categories.includes(category as TCategory) &&
+          isCategory(category)
+        ) {
+          toggleCategory(category as TCategory);
         }
       });
     }
@@ -49,6 +65,52 @@ const Filters = () => {
       range?.from?.toISOString().split("T")[0],
       range?.to?.toISOString().split("T")[0],
     );
+  };
+
+  // Get available sources and categories from saved articles
+  const availableSources = React.useMemo(() => {
+    if (!showSaved) return sources;
+
+    const sourceNames = preferences?.savedArticles?.map((article) =>
+      article.source.name.toLowerCase(),
+    );
+
+    return sources.filter((source) => {
+      const sourceLower = source.toLowerCase();
+      const hasSource = sourceNames?.some((name) => {
+        // Handle different variations of "times"
+        if (sourceLower === "times" || sourceLower === "nytimes") {
+          return name.includes("times") || name.includes("nytimes");
+        }
+        // Handle other sources
+        return name.includes(sourceLower) || sourceLower.includes(name);
+      });
+
+      return hasSource;
+    });
+  }, [showSaved, preferences?.savedArticles]);
+
+  const availableCategories = React.useMemo(() => {
+    if (!showSaved) return categories;
+    return [
+      ...new Set(
+        preferences?.savedArticles
+          ?.map((article) => article.category?.toLowerCase())
+          .filter((category): category is string => category !== undefined),
+      ),
+    ];
+  }, [showSaved, preferences?.savedArticles]);
+
+  const [expandedSections, setExpandedSections] = React.useState({
+    sources: true,
+    categories: true,
+  });
+
+  const toggleSection = (section: "sources" | "categories") => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
   };
 
   return (
@@ -77,73 +139,33 @@ const Filters = () => {
               ? "border-gray-600 text-white placeholder-gray-400"
               : "border-gray-300 text-gray-900 placeholder-gray-500"
           }`}
-          placeholder="Search articles..."
+          placeholder={
+            showSaved ? "Search saved articles..." : "Search articles..."
+          }
         />
       </div>
 
-      {/* Sources */}
-      <div>
-        <h3
-          className={`text-sm font-medium mb-2 ${
-            isDarkMode ? "text-gray-200" : "text-gray-700"
-          }`}
-        >
-          Sources
-        </h3>
-        <div className="space-y-2">
-          {sources.map((source: NewsSource) => (
-            <label key={source} className="flex items-center">
-              <input
-                type="checkbox"
-                checked={filters?.sources?.includes(source)}
-                onChange={() => toggleSource(source)}
-                className={`rounded text-blue-600 focus:ring-blue-500 ${
-                  isDarkMode ? "bg-gray-700 border-gray-600" : "border-gray-300"
-                }`}
-              />
-              <span
-                className={`ml-2 text-sm capitalize ${
-                  isDarkMode ? "text-gray-300" : "text-gray-600"
-                }`}
-              >
-                {source}
-              </span>
-            </label>
-          ))}
-        </div>
-      </div>
+      <SourcesFilter
+        expanded={expandedSections.sources}
+        onToggle={() => toggleSection("sources")}
+        sources={sources}
+        availableSources={availableSources}
+        filters={filters}
+        toggleSource={toggleSource}
+        showSaved={showSaved}
+        isDarkMode={isDarkMode}
+      />
 
-      {/* Categories */}
-      <div>
-        <h3
-          className={`text-sm font-medium mb-2 ${
-            isDarkMode ? "text-gray-200" : "text-gray-700"
-          }`}
-        >
-          Categories
-        </h3>
-        <div className="space-y-2">
-          {categories?.map((category: Category) => (
-            <label key={category} className="flex items-center">
-              <input
-                type="checkbox"
-                checked={filters?.categories?.includes(category)}
-                onChange={() => toggleCategory(category)}
-                className={`rounded text-blue-600 focus:ring-blue-500 ${
-                  isDarkMode ? "bg-gray-700 border-gray-600" : "border-gray-300"
-                }`}
-              />
-              <span
-                className={`ml-2 text-sm capitalize ${
-                  isDarkMode ? "text-gray-300" : "text-gray-600"
-                }`}
-              >
-                {category}
-              </span>
-            </label>
-          ))}
-        </div>
-      </div>
+      <CategoriesFilter
+        expanded={expandedSections.categories}
+        onToggle={() => toggleSection("categories")}
+        categories={categories}
+        availableCategories={availableCategories}
+        filters={filters}
+        toggleCategory={toggleCategory}
+        showSaved={showSaved}
+        isDarkMode={isDarkMode}
+      />
 
       {/* Date Range */}
       <div>

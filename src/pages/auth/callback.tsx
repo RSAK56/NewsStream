@@ -6,7 +6,7 @@ export default function AuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.auth.onAuthStateChange((event, session) => {
+    supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_IN") {
         navigate("/");
       }

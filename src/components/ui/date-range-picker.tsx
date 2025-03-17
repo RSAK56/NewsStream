@@ -1,6 +1,5 @@
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { format } from "date-fns";
-import { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -9,20 +8,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-
-interface DateRangePickerProps {
-  className?: string;
-  date: DateRange | undefined;
-  onDateChange: (date: DateRange | undefined) => void;
-  isDarkMode?: boolean;
-}
+import { IDateRangePickerProps } from "@/constants/interfaces";
 
 export function DateRangePicker({
   className,
   date,
   onDateChange,
   isDarkMode,
-}: DateRangePickerProps) {
+}: IDateRangePickerProps) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -33,7 +26,7 @@ export function DateRangePicker({
           <Button
             variant={"outline"}
             className={cn(
-              "w-full justify-start text-left font-normal",
+              "w-full justify-start text-left font-normal hover:cursor-pointer",
               !date && "text-muted-foreground",
               isDarkMode &&
                 "bg-gray-700 border-gray-600 text-white hover:bg-gray-600",
@@ -63,7 +56,12 @@ export function DateRangePicker({
             onSelect={onDateChange}
             numberOfMonths={2}
             disabled={{ after: today }}
-            className={isDarkMode ? "bg-gray-800 text-white" : ""}
+            className={cn(
+              isDarkMode ? "bg-gray-800 text-white" : "",
+              "[&_button.rdp-button]:hover:cursor-pointer",
+              "[&_button.rdp-day]:hover:bg-gray-100 [&_button.rdp-day]:transition-colors",
+              isDarkMode && "[&_button.rdp-day]:hover:bg-gray-700",
+            )}
           />
         </PopoverContent>
       </Popover>

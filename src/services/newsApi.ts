@@ -4,11 +4,11 @@ import {
   INewsResponse,
   INYTimesArticle,
 } from "../constants/interfaces";
-import { Category } from "../constants/types";
+import { TCategory } from "../constants/types";
 
 const CATEGORY_MAPPINGS: {
-  guardian: Record<Category, string>;
-  nytimes: Record<Category, string>;
+  guardian: Record<TCategory, string>;
+  nytimes: Record<TCategory, string>;
 } = {
   guardian: {
     business: "business",
@@ -78,7 +78,7 @@ const fetchGuardian = async (
 ): Promise<INewsResponse> => {
   const API_KEY = import.meta.env.VITE_GUARDIAN_API_KEY;
   const guardianCategory =
-    CATEGORY_MAPPINGS.guardian[category as Category] || "news";
+    CATEGORY_MAPPINGS.guardian[category as TCategory] || "news";
 
   const dateParams = `${from ? `&from=${from}` : ""}${to ? `&to=${to}` : ""}`;
 
@@ -116,7 +116,8 @@ const fetchNYTimes = async (
 ): Promise<INewsResponse> => {
   const API_KEY = import.meta.env.VITE_NYTIMES_API_KEY;
   // First try mapped category, fallback to 'home' if not supported
-  const nytCategory = CATEGORY_MAPPINGS.nytimes[category as Category] || "home";
+  const nytCategory =
+    CATEGORY_MAPPINGS.nytimes[category as TCategory] || "home";
 
   const dateParams = `${from ? `&from=${from}` : ""}${to ? `&to=${to}` : ""}`;
 

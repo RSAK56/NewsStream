@@ -1,3 +1,5 @@
-export const queryKeys: { [key: string]: any } = {
-  news: ["news"] as const,
+import { TQueryKeys } from "./types";
+
+export const queryKeys: TQueryKeys = {
+  news: ["news"],
 };

@@ -1,18 +1,21 @@
-import { NewsSource, Category } from "./types";
+import { TNewsSource, TCategory } from "./types";
+import { VariantProps } from "class-variance-authority";
+import { buttonVariants } from "@/components/ui/button";
+import { DateRange } from "react-day-picker";
 
 export interface INewsStore {
   isDarkMode: boolean;
   toggleDarkMode: () => void;
   filters: {
     search: string;
-    sources: NewsSource[];
-    categories: Category[];
+    sources: TNewsSource[];
+    categories: TCategory[];
     dateFrom: string | undefined;
     dateTo: string | undefined;
   };
   setSearch: (search: string) => void;
-  toggleSource: (source: NewsSource) => void;
-  toggleCategory: (category: Category) => void;
+  toggleSource: (source: TNewsSource) => void;
+  toggleCategory: (category: TCategory) => void;
   setDateRange: (from?: string, to?: string) => void;
   saveArticle: (article: INewsArticle) => Promise<void>;
   removeSavedArticle: (articleId: string) => Promise<void>;
@@ -66,17 +69,17 @@ export interface INewsResponse {
   totalResults: number;
 }
 
-export interface Article extends INewsArticle {
+export interface IArticle extends INewsArticle {
   id: string;
   isSaved?: boolean;
 }
 
-export interface UserPreferences {
+export interface IUserPreferences {
   darkMode: boolean;
-  savedArticles: Article[];
+  savedArticles: IArticle[];
   newsFilters: {
-    categories: Category[];
-    sources: NewsSource[];
+    categories: TCategory[];
+    sources: TNewsSource[];
     dateRange?: {
       from: Date;
       to: Date;
@@ -84,8 +87,70 @@ export interface UserPreferences {
   };
 }
 
-export interface UserProfile {
+export interface IUserProfile {
   id: string;
   email: string;
-  preferences: UserPreferences;
+  preferences: IUserPreferences;
+}
+
+export interface IButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
+}
+
+export interface IDateRangePickerProps {
+  className?: string;
+  date: DateRange | undefined;
+  onDateChange: (date: DateRange | undefined) => void;
+  isDarkMode?: boolean;
+}
+
+export interface IHeaderProps {
+  onSignInClick: () => void;
+}
+
+export interface IAppProps {
+  Component: React.ComponentType;
+  pageProps: Record<string, unknown>;
+}
+
+export interface INewsState {
+  filters: {
+    search: string;
+    sources: TNewsSource[];
+    categories: TCategory[];
+    dateFrom?: string;
+    dateTo?: string;
+  };
+  isDarkMode: boolean;
+  showSaved: boolean;
+  savedArticles: IArticle[];
+  toggleSavedView: () => void;
+  toggleDarkMode: () => void;
+  setSearch: (search: string) => void;
+  toggleSource: (source: TNewsSource) => void;
+  toggleCategory: (category: TCategory) => void;
+  setDateRange: (from?: string, to?: string) => void;
+  saveArticle: (article: INewsArticle) => Promise<void>;
+  removeSavedArticle: (articleId: string) => Promise<void>;
+}
+
+export interface IUserState {
+  user: IUserProfile | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  preferences: IUserPreferences;
+  setUser: (user: IUserProfile | null) => void;
+  updatePreferences: (preferences: Partial<IUserPreferences>) => Promise<void>;
+  signIn: (
+    email: string,
+    password: string,
+  ) => Promise<{ user: IUserProfile | null }>;
+  signUp: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  setSavedArticles: (articles: IArticle[]) => void;
+  saveArticle: (article: IArticle) => Promise<void>;
+  unsaveArticle: (article: IArticle) => Promise<void>;
+  init: () => Promise<void>;
 }

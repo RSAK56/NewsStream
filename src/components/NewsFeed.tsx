@@ -3,19 +3,21 @@ import { useNewsStore } from "../store/useNewsStore";
 import { useUserStore } from "../store/useUserStore";
 import { fetchNews } from "../services/newsApi";
 import { queryKeys } from "../constants/keys";
-import { INewsArticle } from "../constants/interfaces";
-import { Bookmark } from "lucide-react";
+import { INewsArticle, IArticle } from "../constants/interfaces";
+import { Bookmark, BookmarkCheck } from "lucide-react";
+import { Button } from "./ui/button";
+import React from "react";
 
 const NewsFeed = () => {
   const isDarkMode = useNewsStore((state) => state.isDarkMode);
+  const showSaved = useNewsStore((state) => state.showSaved);
+  const toggleSavedView = useNewsStore((state) => state.toggleSavedView);
   const selectedSources = useNewsStore((state) => state.filters.sources);
   const searchTerm = useNewsStore((state) => state.filters.search);
   const selectedCategories = useNewsStore((state) => state.filters.categories);
   const dateFrom = useNewsStore((state) => state.filters.dateFrom);
   const dateTo = useNewsStore((state) => state.filters.dateTo);
-  const { user } = useUserStore();
-  const saveArticle = useNewsStore((state) => state.saveArticle);
-  const removeSavedArticle = useNewsStore((state) => state.removeSavedArticle);
+  const { user, preferences, saveArticle, unsaveArticle } = useUserStore();
 
   const { data, isLoading, error } = useQuery({
     queryKey: [
@@ -29,8 +31,11 @@ const NewsFeed = () => {
       fetchNews(selectedSources, selectedCategories, dateFrom, dateTo),
   });
 
-  const filteredArticles =
-    data?.articles?.filter((article) => {
+  const filteredArticles = React.useMemo(() => {
+    const articles = showSaved ? preferences.savedArticles : data?.articles;
+    if (!articles) return [];
+
+    return articles.filter((article) => {
       const searchLower = searchTerm?.toLowerCase() || "";
       const sourceLower = article?.source?.name?.toLowerCase() || "";
 
@@ -47,14 +52,14 @@ const NewsFeed = () => {
         (!fromDate || articleDate >= fromDate) &&
         (!toDate || articleDate <= toDate);
 
-      // Search filter
-      if (
-        searchLower === "newsapi" ||
-        searchLower === "guardian" ||
-        searchLower === "times"
-      ) {
-        return sourceLower.includes(searchLower);
-      }
+      // Source filter
+      const matchesSource =
+        selectedSources.length === 0 ||
+        selectedSources.some(
+          (source) =>
+            sourceLower.includes(source.toLowerCase()) ||
+            source.toLowerCase().includes(sourceLower),
+        );
 
       // Category filter
       const articleCategory = article?.category?.toLowerCase() || "";
@@ -67,10 +72,21 @@ const NewsFeed = () => {
       // Text search filter
       const matchesSearch =
         article?.title?.toLowerCase()?.includes(searchLower) ||
-        article?.description?.toLowerCase()?.includes(searchLower);
+        article?.description?.toLowerCase()?.includes(searchLower) ||
+        sourceLower.includes(searchLower);
 
-      return matchesCategory && matchesSearch && matchesDate;
-    }) || [];
+      return matchesSource && matchesCategory && matchesSearch && matchesDate;
+    });
+  }, [
+    showSaved,
+    data?.articles,
+    preferences.savedArticles,
+    searchTerm,
+    selectedSources,
+    selectedCategories,
+    dateFrom,
+    dateTo,
+  ]);
 
   const NoDataMessage = () => (
     <div className="text-center py-12">
@@ -102,12 +118,38 @@ const NewsFeed = () => {
     </div>
   );
 
-  const handleSaveArticle = (article: INewsArticle) => {
+  const handleSaveArticle = async (article: INewsArticle) => {
     if (!user) {
-      // You might want to show the sign-in modal here
+      // Handle unauthenticated user - maybe show sign in modal
       return;
     }
-    saveArticle(article);
+
+    const articleWithId: IArticle = {
+      ...article,
+      id: article.url,
+    };
+
+    const isArticleSaved = preferences.savedArticles?.some(
+      (savedArticle) =>
+        savedArticle.url.toLowerCase() === article.url.toLowerCase(),
+    );
+
+    try {
+      if (isArticleSaved) {
+        await unsaveArticle(articleWithId);
+      } else {
+        await saveArticle(articleWithId);
+      }
+    } catch (error) {
+      console.error("Error saving article:", error);
+    }
+  };
+
+  const isArticleSaved = (article: INewsArticle) => {
+    return preferences.savedArticles?.some(
+      (savedArticle) =>
+        savedArticle.url.toLowerCase() === article.url.toLowerCase(),
+    );
   };
 
   if (error) {
@@ -133,13 +175,26 @@ const NewsFeed = () => {
 
   return (
     <div className="space-y-6">
-      <h2
-        className={`text-xl font-semibold ${
-          isDarkMode ? "text-white" : "text-gray-900"
-        }`}
-      >
-        News Articles
-      </h2>
+      <div className="flex items-center justify-between">
+        <h2
+          className={`text-xl font-semibold ${
+            isDarkMode ? "text-white" : "text-gray-900"
+          }`}
+        >
+          News Articles
+        </h2>
+        {user && (
+          <Button
+            onClick={toggleSavedView}
+            variant={showSaved ? "default" : "outline"}
+            className={`${
+              isDarkMode && !showSaved ? "border-gray-700 text-gray-800" : ""
+            } hover:cursor-pointer`}
+          >
+            {showSaved ? "Show All" : "Saved"}
+          </Button>
+        )}
+      </div>
       <div
         className={`${
           isDarkMode ? "bg-gray-800 text-gray-300" : "bg-white text-gray-600"
@@ -151,7 +206,7 @@ const NewsFeed = () => {
           filteredArticles.map((article: INewsArticle, index: number) => (
             <article
               key={index}
-              className="border-b last:border-b-0 pb-4 last:pb-0"
+              className="border-b last:border-b-0 pb-4 last:pb-0 relative z-0"
             >
               <a
                 href={article?.url}
@@ -182,22 +237,22 @@ const NewsFeed = () => {
                       {new Date(article?.publishedAt).toLocaleDateString()}
                     </span>
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleSaveArticle(article);
-                    }}
-                    className="p-1 hover:text-blue-600 transition-colors"
-                    title={
-                      article.isSaved ? "Remove from saved" : "Save article"
-                    }
-                  >
-                    <Bookmark
-                      size={18}
-                      className={article.isSaved ? "fill-current" : ""}
-                    />
-                  </button>
+                  {user && (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleSaveArticle(article);
+                      }}
+                      className="p-2 hover:bg-gray-100 rounded-full hover:cursor-pointer"
+                    >
+                      {isArticleSaved(article) ? (
+                        <BookmarkCheck className="h-5 w-5 text-blue-500" />
+                      ) : (
+                        <Bookmark className="h-5 w-5" />
+                      )}
+                    </button>
+                  )}
                 </div>
               </a>
             </article>

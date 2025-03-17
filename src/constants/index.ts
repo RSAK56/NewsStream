@@ -1,8 +1,8 @@
-import { Category, NewsSource } from "./types";
+import { TCategory, TNewsSource } from "./types";
 
-export const sources: NewsSource[] = ["newsapi", "guardian", "nytimes"];
+export const sources: TNewsSource[] = ["newsapi", "guardian", "nytimes"];
 
-export const categories: Category[] = [
+export const categories: TCategory[] = [
   "general",
   "business",
   "technology",
