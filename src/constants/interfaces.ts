@@ -154,3 +154,29 @@ export interface IUserState {
   unsaveArticle: (article: IArticle) => Promise<void>;
   init: () => Promise<void>;
 }
+
+export interface ICategoriesFilterProps {
+  expanded: boolean;
+  onToggle: () => void;
+  categories: TCategory[];
+  availableCategories: string[];
+  filters: {
+    categories: TCategory[];
+  };
+  toggleCategory: (category: TCategory) => void;
+  showSaved: boolean;
+  isDarkMode: boolean;
+}
+
+export interface ISourcesFilterProps {
+  expanded: boolean;
+  onToggle: () => void;
+  sources: TNewsSource[];
+  availableSources: TNewsSource[];
+  filters: {
+    sources: TNewsSource[];
+  };
+  toggleSource: (source: TNewsSource) => void;
+  showSaved: boolean;
+  isDarkMode: boolean;
+}

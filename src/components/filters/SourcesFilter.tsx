@@ -1,18 +1,6 @@
 import { ChevronDown } from "lucide-react";
 import { TNewsSource } from "@/constants/types";
-
-interface SourcesFilterProps {
-  expanded: boolean;
-  onToggle: () => void;
-  sources: TNewsSource[];
-  availableSources: TNewsSource[];
-  filters: {
-    sources: TNewsSource[];
-  };
-  toggleSource: (source: TNewsSource) => void;
-  showSaved: boolean;
-  isDarkMode: boolean;
-}
+import { ISourcesFilterProps } from "@/constants/interfaces";
 
 export const SourcesFilter = ({
   expanded,
@@ -23,7 +11,7 @@ export const SourcesFilter = ({
   toggleSource,
   showSaved,
   isDarkMode,
-}: SourcesFilterProps) => {
+}: ISourcesFilterProps) => {
   return (
     <div>
       <button

@@ -1,18 +1,6 @@
 import { ChevronDown } from "lucide-react";
 import { TCategory } from "@/constants/types";
-
-interface CategoriesFilterProps {
-  expanded: boolean;
-  onToggle: () => void;
-  categories: TCategory[];
-  availableCategories: string[];
-  filters: {
-    categories: TCategory[];
-  };
-  toggleCategory: (category: TCategory) => void;
-  showSaved: boolean;
-  isDarkMode: boolean;
-}
+import { ICategoriesFilterProps } from "@/constants/interfaces";
 
 export const CategoriesFilter = ({
   expanded,
@@ -23,7 +11,7 @@ export const CategoriesFilter = ({
   toggleCategory,
   showSaved,
   isDarkMode,
-}: CategoriesFilterProps) => {
+}: ICategoriesFilterProps) => {
   return (
     <div>
       <button
