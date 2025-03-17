@@ -1,3 +1,4 @@
+import { CATEGORY_MAPPINGS } from "@/constants";
 import {
   IGuardianArticle,
   INewsAPIArticle,
@@ -5,30 +6,6 @@ import {
   INYTimesArticle,
 } from "../constants/interfaces";
 import { TCategory } from "../constants/types";
-
-const CATEGORY_MAPPINGS: {
-  guardian: Record<TCategory, string>;
-  nytimes: Record<TCategory, string>;
-} = {
-  guardian: {
-    business: "business",
-    technology: "technology",
-    general: "news",
-    health: "healthcare",
-    sports: "sport",
-    entertainment: "culture",
-    science: "science",
-  },
-  nytimes: {
-    business: "business",
-    technology: "technology",
-    sports: "sports",
-    health: "health",
-    general: "home",
-    science: "science",
-    entertainment: "arts",
-  },
-};
 
 const fetchNewsAPI = async (
   category: string,
