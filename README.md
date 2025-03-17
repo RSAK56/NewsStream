@@ -77,14 +77,14 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 2. Build and run using Docker Compose (recommended):
 
 ```bash
-# Start the application
-docker-compose up -d
+# Build and start the application
+docker compose up --build -d
 
 # View logs
-docker-compose logs -f
+docker compose logs -f
 
 # Stop the application
-docker-compose down
+docker compose down
 ```
 
 Or using Docker directly:
